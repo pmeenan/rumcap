@@ -1,0 +1,8 @@
+{
+  "name": "rum-format-capture-tool",
+  "private": true,
+  "description": "Reproduction tooling for components/format/samples — captures real Performance API data via headless Chrome. Standalone; NOT a workspace member.",
+  "devDependencies": {
+    "puppeteer-core": "^25.2.1"
+  }
+}

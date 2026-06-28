@@ -58,4 +58,4 @@ Each lives in its own folder under [`components/`](components/) with its own `RE
 
 ## License
 
-[Apache-2.0](LICENSE). Contributions and dependencies must be licensed no more restrictively than Apache-2.0 — see [AGENTS.md](AGENTS.md).
+[Apache-2.0](LICENSE). The rule is **product vs. tooling**: **product code** (anything shipped into a user's page) uses only permissive dependencies, while dev/build/test **tooling** that never ships may use weak-copyleft licenses that can't leak into the product — see [AGENTS.md](AGENTS.md).

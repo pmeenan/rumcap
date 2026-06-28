@@ -49,6 +49,8 @@ Pack/unpack must round-trip the in-memory model exactly (validated against the g
 
 The API should allow incremental construction and off-main-thread use. Capture/transport paths must not rely on a large synchronous pack/compress step during `pagehide` or `visibilitychange`.
 
+**Status (2026-06-28):** the in-memory model, manifest, and capture-config are implemented and type-checked in [`../src`](../src) (`@rum-profiler/format`), grounded against the real captures in [`../samples`](../samples). Pack/unpack is **not yet built** — it is the next Phase 0 step, where the codec substrate, magic bytes, interning, delta-encoding, and compression get decided against this concrete model.
+
 ## Versioning
 
 Top-level format version plus per-stream `schemaVersion`. Readers skip unknown streams/fields; migrations are documented here. Adding a browser signal = adding a stream schema, not breaking the file.

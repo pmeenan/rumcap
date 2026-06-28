@@ -1,0 +1,26 @@
+{
+  "name": "rum-profiler",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Client-side tools for deep real-user performance capture, profiling, and analysis.",
+  "license": "Apache-2.0",
+  "workspaces": [
+    "components/format"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean",
+    "typecheck": "tsc -b && tsc -p components/format/tsconfig.test.json",
+    "lint": "eslint . --max-warnings 0",
+    "test": "npm run typecheck && vitest run"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.0.1",
+    "eslint": "^10.6.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.62.0",
+    "vitest": "^4.1.9"
+  }
+}

@@ -24,6 +24,8 @@ The **Phase 1 milestone is the first shippable product**: a Chrome extension tha
 - `format`: build a **golden corpus**, including deliberately *partial* captures (Safari-subset, no-profiler, no-resource-timing, buffer-overflowed) so degradation is tested, not hoped for.
 - `capture` (MVP): place the cheap, widely-available raw streams (navigation/resource/paint, LCP/CLS/Event Timing entries with live attribution, long tasks/LoAF) on one clock and emit the in-memory model the format packs. Derived CWV metrics live in `analysis`. Include a tiny app-signal API for explicit SPA/router boundary marks rather than depending solely on experimental soft-navigation heuristics.
 
+**Progress (2026-06-28):** npm + TypeScript workspace scaffolded (vitest, ESLint flat config, `tsc -b` project refs). `format` in-memory model, manifest, and capture-config drafted and grounded in a real Chrome-149 capture corpus ([`components/format/samples`](../components/format/samples)); lint/build/tests green. **Next:** binary codec + golden-corpus round-trip, then `capture` MVP.
+
 **Exit criteria:** capture → pack → unpack → equality on the golden corpus, including partial captures; format spec drafted and versioned.
 
 ## Phase 1 — Local loop (v0)
@@ -68,11 +70,12 @@ The **Phase 1 milestone is the first shippable product**: a Chrome extension tha
 
 ## Open decisions
 
-- **Monorepo tooling:** pnpm vs. npm vs. bun workspaces; whether/where to add `package.json` per component. (Deferred until Phase 0 coding starts.)
-- **Language:** TypeScript across the shared schema vs. vanilla JS + JSDoc types (waterfall-tools uses the latter).
-- **Layout:** `components/<name>/` grouping (current) vs. top-level component folders vs. `packages/`.
+- **Monorepo tooling:** ✅ Resolved — **npm workspaces** (TypeScript, ESLint flat config, vitest; `tsc -b` project refs). A `package.json` is added per component as it gains code.
+- **Language:** ✅ Resolved — **TypeScript** (strict, NodeNext, `verbatimModuleSyntax`) across the shared schema.
+- **Layout:** ✅ Resolved — `components/<name>/` grouping (current).
+- **Test runner:** ✅ Resolved — **vitest** (matches the sibling project).
 - **Canonical file extension / magic bytes** for the packed format.
-- **License nuance:** AGENTS.md currently excludes MPL (stricter than waterfall-tools, which permits it) to honor "no more restrictive than Apache-2." Confirm or relax.
+- **License nuance:** ✅ Resolved — policy is **product vs. tooling** (see [AGENTS.md](../AGENTS.md)): product code is permissive-only (allowed as a category, not a fixed list); non-shipping dev/build tooling may use weak/file-level copyleft that can't leak (e.g. MPL-2.0 `lightningcss` via Vite/Vitest). Strong copyleft (GPL/AGPL/LGPL) remains a human call.
 - **Soft navigations:** how aggressively to support the (still-experimental) SPA boundary signal in v0.
 - **JS self-profiling overhead tuning:** the enabling header is fixed (`Document-Policy: js-profiling`); the open question is the overhead budget — `sampleInterval` / `maxBufferSize` and when to enable profiling (always-sampled vs. triggered) — tuned against measured cost and current (Chromium-only) support.
 - **Multi-context capture:** whether/when to capture same-origin iframes, dedicated workers, shared workers, or service workers. If included, define explicit clock-alignment handshakes and degradation rules before adding those streams.
