@@ -19,13 +19,43 @@ Three, so a page ships only what it uses:
 It's a physical split (separate modules + subpath exports), so the decoder can't reach a user's page
 even without a bundler. The core encode surface (pack + `Encoder` + `SliceBuilder`) bundles to
 **~6.7 KB gzip**; the browser-entry integration (`entrySink` + normalizers + `environmentSnapshot`) is
-itself tree-shakeable and adds **~3.2 KB** only if imported (the quickstart import set —
-`Encoder` + `entrySink` + `environmentSnapshot` — lands at ~9.3 KB). Measured with esbuild
+itself tree-shakeable and adds **~2.9 KB** only if imported (the quickstart import set —
+`Encoder` + `entrySink` + `environmentSnapshot` — lands at ~9.5 KB). Measured with esbuild
 `--bundle --minify` + gzip -9; rolldown agrees within ~1%.
 
 ```bash
 npm install rumcap
 ```
+
+## What the format covers
+
+Every stable Web Performance API surface, field-complete against the specs and grounded in real Chrome
+captures (`samples/`); every stream is optional and its absence is recorded with a reason:
+
+| API | entry type(s) | stream | field notes |
+|---|---|---|---|
+| Navigation Timing | `navigation` | `navigation` | the full resource phase timeline + document milestones, `activationStart` (prerender), `criticalCHRestart`, bfcache `notRestoredReasons` (populated tree grounded), `confidence` |
+| Resource Timing | `resource` | `resources` | all phases incl. Early Hints (`firstInterimResponseStart`), `renderBlockingStatus`, `contentType`/`contentEncoding`, ServiceWorker static routing (spec names), sizes, `responseStatus` |
+| Server Timing | on `navigation`/`resource` | ↑ | `serverTiming[]` — `name`/`duration`/`description` per metric |
+| Paint Timing | `paint` | `paint` | FP + FCP (+ Chrome's `paintTime`/`presentationTime` split). The spec exposes no element for FCP — nothing to attribute |
+| Largest Contentful Paint | `largest-contentful-paint` | `lcp` | every candidate + the final one; `size`/`renderTime`/`loadTime`/`id`/`url` + [element attribution](#element-attribution) |
+| Layout Instability (CLS) | `layout-shift` | `cls` | `value`, `hadRecentInput`, `lastInputTime`, `sources[]` with before/after rects + element attribution |
+| Event Timing / INP | `event`, `first-input` | `interactions` | processing bounds, `interactionId`, `cancelable`, target attribution (incl. the spec's `targetSelector` when a UA ships it); INP derives offline |
+| Long Tasks | `longtask` | `longTasks` | duration, the container vocabulary `name` (`self`/`same-origin-descendant`/…), `TaskAttributionTiming` containers |
+| Long Animation Frames | `long-animation-frame` | `loaf` | render/style-and-layout bounds, `blockingDuration`, full per-script attribution (invoker, source URL/function/char, forced-layout + pause durations) |
+| Element Timing | `element` | `elementTiming` | both paint kinds (`image-paint`/`text-paint`), `identifier`, element `id`, `url`, natural size, `intersectionRect`, paint-mixin times, element attribution |
+| User Timing | `mark`, `measure` | `userTiming` | names, timestamps, and the live `detail` payload (arbitrary JSON, lossless — incl. DevTools `detail.devtools` track entries) |
+| Page Visibility | `visibility-state` | `visibility` | visible/hidden transitions on the timeline |
+| JS Self-Profiling | `Profiler` API | `profile` | raw traces folded on-page into nested call-tree slices |
+| Error events | window events | `errors` | `error` + `unhandledrejection` with source/line/col/stack |
+| Environment | `navigator` etc. | `environment` | UA + UA-CH (incl. high-entropy when granted), device memory, cores, connection, viewport/screen/DPR |
+| App / framework instrumentation | — | `customEvents`, `userTiming` | namespaced, nested, measured spans with details — see [Framework profiling](#framework-profiling-react-vue-and-friends) |
+
+Deliberately not modeled: **soft navigations** (the `soft-navigation` entry type is experimental and not
+in stable Chrome's `supportedEntryTypes` — record SPA boundaries as marks or custom events until it
+ships, at which point it becomes a normal additive stream) and **`console.timeStamp()` DevTools
+entries** (visualization-only by design: they are invisible to `PerformanceObserver` and every other web
+API, so no RUM library can capture them).
 
 ## Capturing straight from the browser APIs
 
@@ -77,9 +107,36 @@ under [`samples/`](../samples)):
   becomes a manifest loss note — never a silent gap.
 - **Late deliveries are safe.** After `finish()`, the sink drops entries silently instead of throwing
   inside the page (`encoder.finished` exposes the same check for your own handlers).
-- **Live attribution → structural selectors.** LCP elements, layout-shift sources, and interaction
-  targets are captured as short structural CSS paths (`main#content > div.card > img:nth-of-type(2)`)
-  via `structuralSelector` — never element text. A pre-computed selector string is also accepted.
+- **Live attribution → structured element refs.** LCP elements, layout-shift source nodes, interaction
+  targets, and element-timing elements are captured as a structural CSS path plus the element's
+  authored identity — see [Element attribution](#element-attribution).
+- **toJSON() artifacts never fake data.** An entry-level `toJSON()` serializes nested platform objects
+  as `{}` (`intersectionRect`, `serverTiming` metrics, longtask attribution, even a null
+  `notRestoredReasons`) — on live entries the sink reads the real objects; on replayed `toJSON()` forms
+  the empties normalize to *absent*, never to zeros.
+
+### Element attribution
+
+Every entry that points at a live DOM element (LCP `element`, layout-shift `sources[].node`,
+interaction `target`, element-timing `element`) is captured as a structured `ElementRef`:
+
+```ts
+interface ElementRef {
+  selector?: string;   // structural CSS path: 'main#content > div.card > img:nth-of-type(2)'
+  tag?: string;        // localName, e.g. 'img'
+  id?: string;         // the id content attribute
+  classes?: string[];  // class list, bounded to the first 8
+  name?: string;       // the name content attribute (form fields, iframes)
+}
+```
+
+Everything captured is **authored identity** — tag names, ids, class lists, `name` attributes, and the
+`structuralSelector` path — never element text content or user-entered values, matching the
+`structural-only` redaction vocabulary in the capture config. The normalizers read live elements when
+the entry carries one; consumers with their own attribution/redaction policy can instead pass a
+pre-computed selector string or a ready-made ref object anywhere an element is accepted. (FCP has no
+element to attribute — Paint Timing exposes none — and LCP additionally carries the spec's own `id` and
+image `url` fields.)
 
 Every stream is optional, and *why* it's absent is data. When you know, say so:
 
@@ -143,6 +200,41 @@ app.event({ name: 'gc', start: asRelMs(t0), duration: asDurationMs(t1 - t0), dep
 
 Nested spans produce nested slices (a viewer renders `place-order` ⊃ its children). Custom-event
 durations are **measured**, so they keep full microsecond precision (unlike inferred profile slices).
+
+### Framework profiling (React, Vue, and friends)
+
+Two capture paths cover what frameworks emit:
+
+- **Real User Timing flows through automatically.** Anything emitted via `performance.mark()`/
+  `measure()` lands in the `userTiming` stream with its live `detail` preserved losslessly — including
+  the Chrome DevTools extensibility payload (`detail: { devtools: { track, trackGroup, color, … } }`).
+  React 19.1+'s Performance Tracks use exactly that shape for part of their output (dev/profiling
+  builds), as does Vue's dev-mode `app.config.performance` instrumentation, so their spans survive into
+  the capture with the track metadata intact. The caveat: React emits its *hottest* track entries via
+  `console.timeStamp()`, which by design never becomes a performance entry — those are DevTools-only
+  and unobservable by any web API.
+- **Production builds emit nothing by default — bridge their profiling hooks onto a timeline.** The
+  hooks give you measured start/duration, so use the `event()` escape hatch (not `begin`/`end`, which
+  would re-measure). React's `<Profiler>`:
+
+  ```tsx
+  const react = enc.timeline('react');
+
+  <Profiler id="Checkout" onRender={(id, phase, actualDuration, baseDuration, startTime) => {
+    if (!enc.finished) react.event({
+      name: `${id} (${phase})`,
+      start: asRelMs(startTime),
+      duration: asDurationMs(actualDuration),
+      depth: 0,
+      details: { baseDuration },
+    });
+  }}>
+    <Checkout />
+  </Profiler>
+  ```
+
+  Each library gets its own namespace (`enc.timeline('react')`, `enc.timeline('router')`, …), so a
+  viewer renders them as separate tracks alongside the browser streams and the CPU profile.
 
 ## Feeding pre-normalized data
 

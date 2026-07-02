@@ -52,19 +52,45 @@ const sampleFiles = readdirSync(samplesDir).filter((f) => f.endsWith('.json'));
 
 /**
  * Reconstruct the LIVE view of a raw sample entry. The spike stores each entry's `toJSON()` plus, under
- * `__attribution`, the live-only parts toJSON drops or empties: LoAF `scripts` serialize as `{}`, and
- * LCP `element` / shift `sources[].node` / interaction `target` are live nodes the spike pre-resolved
- * to structural selector strings. Grafting them back is what a real observer callback would have seen
- * (with selectors in place of nodes — which the normalizers accept directly).
+ * `__attribution`, the live-only parts toJSON drops or empties: LoAF `scripts`, `serverTiming`, longtask
+ * `attribution`, `notRestoredReasons`, and the element-timing `intersectionRect` all serialize as `{}`
+ * through the parent entry's toJSON; node-valued attributions (LCP element, shift sources, interaction
+ * target, element-timing element) were pre-resolved by the spike to selector strings + structured attrs
+ * (`{tag,id,classes,name}` — spike v3); mark/measure `detail` only exists live. Grafting them back is
+ * what a real observer callback would have seen (with pre-computed refs in place of nodes — which the
+ * normalizers accept directly). Keep in step with the copy in samples/capture-tool/sizes.mjs.
  */
 function liveView(type: string, entry: Record<string, unknown>): Record<string, unknown> {
   const attr = entry.__attribution as Record<string, unknown> | undefined;
   if (attr === undefined) return entry;
   const out = { ...entry };
-  if (type === 'largest-contentful-paint' && attr.element !== undefined) out.element = attr.element;
-  if (type === 'layout-shift' && Array.isArray(attr.sources)) out.sources = attr.sources;
-  if ((type === 'event' || type === 'first-input') && attr.target !== undefined) out.target = attr.target;
+  // A selector string + the spike's structured attrs merge into one pre-computed ElementRef-shaped
+  // object (the normalizers accept it wherever they accept a live node).
+  const ref = (selector: unknown, attrs: unknown): Record<string, unknown> | undefined =>
+    typeof selector === 'string' || (attrs !== null && typeof attrs === 'object')
+      ? { ...(typeof selector === 'string' ? { selector } : {}), ...(attrs as object | null ?? {}) }
+      : undefined;
+  if (type === 'largest-contentful-paint' || type === 'element') {
+    const element = ref(attr.element, attr.elementAttrs);
+    if (element !== undefined) out.element = element;
+    if (type === 'element' && attr.intersectionRect !== undefined) out.intersectionRect = attr.intersectionRect;
+  }
+  if (type === 'layout-shift' && Array.isArray(attr.sources)) {
+    out.sources = (attr.sources as Record<string, unknown>[]).map((s) => ({
+      node: ref(s.node, s.attrs),
+      previousRect: s.previousRect,
+      currentRect: s.currentRect,
+    }));
+  }
+  if (type === 'event' || type === 'first-input') {
+    const target = ref(attr.target, attr.targetAttrs);
+    if (target !== undefined) out.target = target;
+  }
   if (type === 'long-animation-frame' && Array.isArray(attr.scripts)) out.scripts = attr.scripts;
+  if (type === 'longtask' && Array.isArray(attr.attribution)) out.attribution = attr.attribution;
+  if ((type === 'navigation' || type === 'resource') && Array.isArray(attr.serverTiming)) out.serverTiming = attr.serverTiming;
+  if (type === 'navigation' && attr.notRestoredReasons !== undefined) out.notRestoredReasons = attr.notRestoredReasons;
+  if ((type === 'mark' || type === 'measure') && attr.detail !== undefined) out.detail = attr.detail;
   return out;
 }
 
@@ -204,6 +230,77 @@ describe('sample-corpus replay through entrySink', () => {
     expect(decoded.streams.paint!.firstContentfulPaint).toBeDefined();
     expect(decoded.streams.paint!.firstContentfulPaint!.paintTime).toBeGreaterThan(0);
   });
+
+  it('carries the local fixture\'s element timing, attrs, server timing, and long-task names', async () => {
+    // chrome-local-fixture grounds the surfaces the public pages can't: Element Timing, structured
+    // element attributes, real Server-Timing values, and iframe long-task attribution.
+    const sample = JSON.parse(readFileSync(new URL('chrome-local-fixture.json', samplesDir), 'utf8')) as RawSample;
+    const { enc } = replay(sample);
+    const decoded = await unpack(await enc.finish());
+    expect(checkConsistency(decoded)).toEqual([]);
+
+    // Element Timing: both paint kinds, spec-complete fields, and the 0/'' sentinels stripped.
+    const elements = decoded.streams.elementTiming!.elements;
+    expect(elements.map((e) => e.identifier)).toEqual(['headline', 'intro-copy', 'hero-image', 'thumb-image']);
+    const hero = elements.find((e) => e.identifier === 'hero-image')!;
+    expect(hero.name).toBe('image-paint');
+    expect(hero.id).toBe('hero');
+    expect(hero.url).toContain('/hero.svg');
+    expect(hero.naturalWidth).toBe(600);
+    expect(hero.paintTime).toBeGreaterThan(0);
+    expect(hero.intersectionRect!.width).toBeGreaterThan(0);
+    expect(hero.element).toMatchObject({ tag: 'img', id: 'hero', classes: ['hero-img', 'primary'] });
+    const headline = elements.find((e) => e.identifier === 'headline')!;
+    expect(headline.name).toBe('text-paint');
+    expect(headline.url).toBeUndefined(); // '' sentinel (text element) must not survive
+    expect(headline.loadTime).toBeUndefined(); // 0 sentinel
+    expect(headline.naturalWidth).toBeUndefined(); // 0 sentinel (no intrinsic size)
+
+    // Long tasks: the entry-level container vocabulary + live-read attribution containers.
+    const names = new Set(decoded.streams.longTasks!.tasks.map((t) => t.name));
+    expect(names).toContain('self');
+    expect(names).toContain('same-origin-descendant');
+    const iframeTask = decoded.streams.longTasks!.tasks.find((t) => t.name === 'same-origin-descendant')!;
+    expect(iframeTask.attribution![0]).toMatchObject({ containerType: 'iframe', containerId: 'taskframe', containerName: 'tasky' });
+
+    // Server-Timing: real values on the navigation and the API fetch (duration 0 kept; '' desc absent).
+    const navSt = decoded.streams.navigation!.serverTiming!;
+    expect(navSt).toContainEqual({ name: 'db', duration: 53.2, description: 'primary shard' });
+    expect(navSt).toContainEqual({ name: 'cache', duration: 0, description: 'hit' });
+    expect(navSt).toContainEqual({ name: 'edge', duration: 1.4 }); // no desc → absent
+
+    // Interaction targets carry the structured attrs, incl. the `name` content attribute.
+    const targets = decoded.streams.interactions!.events.flatMap((e) => (e.target ? [e.target] : []));
+    expect(targets.some((t) => t.name === 'email' && t.tag === 'input' && t.id === 'email-field')).toBe(true);
+    expect(targets.some((t) => t.name === 'submit' && t.id === 'go')).toBe(true);
+
+    // Layout-shift source nodes carry attrs; the input-driven shift kept its lastInputTime.
+    const shifts = decoded.streams.cls!.shifts;
+    expect(shifts.some((s) => s.sources?.some((src) => src.node?.id === 'hero' && src.node.tag === 'img'))).toBe(true);
+    expect(shifts.some((s) => s.hadRecentInput && s.lastInputTime !== undefined)).toBe(true);
+
+    // Mark/measure live detail flowed through — including the DevTools-extensibility track shape.
+    const marks = decoded.streams.userTiming!.marks;
+    expect(marks.find((m) => m.name === 'fixture:boot')!.detail).toEqual({ phase: 'boot', flags: ['a', 'b'], attempt: 1 });
+    expect(marks.find((m) => m.name === 'fixture:plain')!.detail).toBeUndefined(); // live null → absent
+    const track = decoded.streams.userTiming!.measures.find((m) => m.name === '⚛ OrderForm render')!;
+    expect(track.detail).toMatchObject({ devtools: { dataType: 'track-entry', track: 'Components ⚛' } });
+  });
+
+  it('carries the bfcache fixture\'s populated notRestoredReasons tree', async () => {
+    const sample = JSON.parse(readFileSync(new URL('chrome-local-fixture-bfcache.json', samplesDir), 'utf8')) as RawSample;
+    const { enc } = replay(sample);
+    const decoded = await unpack(await enc.finish());
+    const nav = decoded.streams.navigation!;
+    expect(nav.type).toBe('back_forward');
+    expect(nav.unloadEventStart).toBeGreaterThan(0); // the previous doc's unload handler ran
+    // The live tree: url + at least one reason; the toJSON()'s nulls must not survive as ''.
+    expect(nav.notRestoredReasons).toBeTruthy();
+    const nrr = nav.notRestoredReasons!;
+    expect(nrr.url).toContain('http://127.0.0.1');
+    expect(nrr.reasons!.length).toBeGreaterThan(0);
+    expect('src' in nrr).toBe(false); // null src/id/name → absent
+  });
 });
 
 // ── Part B: quirks the corpus cannot exhibit ────────────────────────────────────────────────────────
@@ -303,6 +400,56 @@ describe('normalizers (unit)', () => {
   it('drops the platform-default null mark detail but keeps real details', () => {
     expect(normalizeMark({ name: 'm', startTime: 1, detail: null }).detail).toBeUndefined();
     expect(normalizeMark({ name: 'm', startTime: 1, detail: { a: 1 } }).detail).toEqual({ a: 1 });
+  });
+
+  it('reads structural element attributes from a live element and from a pre-computed ref', async () => {
+    const { normalizeElementTiming, normalizeLongTask, normalizeInteraction } = await import('rumcap');
+    // A live-ish element (nodeType 1): selector walk + tag/id/classes/name-attribute reads.
+    const live = {
+      nodeType: 1, localName: 'input', id: 'email-field',
+      classList: ['field', 'wide'], parentElement: null,
+      getAttribute: (n: string) => (n === 'name' ? 'email' : null),
+    };
+    const it1 = normalizeInteraction({ name: 'keydown', startTime: 1, duration: 8, target: live });
+    expect(it1.target).toEqual({ selector: 'input#email-field', tag: 'input', id: 'email-field', classes: ['field', 'wide'], name: 'email' });
+
+    // Classes are bounded to 8 (utility-class pages must not bloat refs).
+    const manyClasses = { nodeType: 1, localName: 'div', classList: Array.from({ length: 20 }, (_, i) => `c${i}`), parentElement: null };
+    const it2 = normalizeInteraction({ name: 'click', startTime: 1, duration: 8, target: manyClasses });
+    expect(it2.target!.classes!.length).toBe(8);
+
+    // A pre-computed structured ref (replay path) passes through guarded; junk keys are dropped.
+    const el = normalizeElementTiming({ startTime: 5, element: { selector: 'img#hero', tag: 'img', id: 'hero', classes: ['a', 7, ''], junk: true } });
+    expect(el.element).toEqual({ selector: 'img#hero', tag: 'img', id: 'hero', classes: ['a'] });
+
+    // The spec's targetSelector string is a fallback when no live target is readable [spec-grounded;
+    // https://w3c.github.io/event-timing/#dom-performanceeventtiming-targetselector — not yet in Chrome].
+    const it3 = normalizeInteraction({ name: 'click', startTime: 1, duration: 8, targetSelector: 'button#buy' });
+    expect(it3.target).toEqual({ selector: 'button#buy' });
+
+    // Long task entry-level name is kept; '' → absent.
+    expect(normalizeLongTask({ startTime: 1, duration: 60, name: 'same-origin-descendant' }).name).toBe('same-origin-descendant');
+    expect(normalizeLongTask({ startTime: 1, duration: 60, name: '' }).name).toBeUndefined();
+  });
+
+  it('treats a toJSON-emptied {} rect as absent but keeps a real all-zero rect', async () => {
+    // Grounded: Chrome 150 serializes element-timing intersectionRect as {} through the entry's
+    // toJSON; a rect with no stored geometry must be ABSENT — never fabricated zeros.
+    const { normalizeElementTiming } = await import('rumcap');
+    expect(normalizeElementTiming({ startTime: 1, intersectionRect: {} }).intersectionRect).toBeUndefined();
+    const zero = { x: 0, y: 0, width: 0, height: 0, top: 0, right: 0, bottom: 0, left: 0 };
+    expect(normalizeElementTiming({ startTime: 1, intersectionRect: zero }).intersectionRect).toEqual(zero);
+  });
+
+  it('drops the {} notRestoredReasons toJSON artifact but keeps null and real trees', () => {
+    // Chrome 150's entry toJSON serializes even a NULL tree as {} (the live getter returns null).
+    expect(normalizeNavigation({ notRestoredReasons: {} }).notRestoredReasons).toBeUndefined();
+    expect(normalizeNavigation({ notRestoredReasons: null }).notRestoredReasons).toBeNull();
+    // A real masked node keeps its (possibly empty) reasons/children arrays — grounded in the
+    // chrome-local-fixture-bfcache capture ({url, reasons:[{reason:'masked'}], children:[]}).
+    expect(
+      normalizeNavigation({ notRestoredReasons: { url: 'http://a/', reasons: [{ reason: 'masked' }], children: [] } }).notRestoredReasons,
+    ).toEqual({ url: 'http://a/', reasons: [{ reason: 'masked' }], children: [] });
   });
 
   it('builds structural selectors and never element text', () => {

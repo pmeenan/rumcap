@@ -124,6 +124,12 @@ const ACCOUNTED: Record<string, readonly string[]> = {
     'name', 'startTime', 'duration', 'renderStart', 'styleAndLayoutStart', 'firstUIEventTimestamp',
     'blockingDuration', 'paintTime', 'presentationTime', 'scripts',
   ],
+  // Grounded by the local fixture captures (public corpus pages set no `elementtiming` attributes).
+  element: [
+    'name', 'startTime', 'duration', 'paintTime', 'presentationTime',
+    'renderTime', 'loadTime', 'intersectionRect', 'identifier', 'naturalWidth', 'naturalHeight',
+    'id', 'url',
+  ],
   mark: ['name', 'startTime', 'duration'],
   measure: ['name', 'startTime', 'duration'],
   'visibility-state': ['name', 'startTime', 'duration'],

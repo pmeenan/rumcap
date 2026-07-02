@@ -22,7 +22,8 @@ enc.setEnvironment(environmentSnapshot());
 //    every entry type, and normalization onto the model happens inside the library:
 const sink = entrySink(enc);
 for (const type of ['navigation', 'resource', 'paint', 'largest-contentful-paint', 'layout-shift',
-                    'event', 'first-input', 'longtask', 'long-animation-frame', 'mark', 'measure']) {
+                    'event', 'first-input', 'longtask', 'long-animation-frame', 'element',
+                    'mark', 'measure']) {
   try { new PerformanceObserver(sink).observe({ type, buffered: true }); } catch { /* unsupported */ }
 }
 
@@ -67,7 +68,7 @@ the nested call-tree slices a viewer actually renders.
 
 On the page, the full encode surface (pack + streaming `Encoder` + profiler fold) is **~6.7 KB gzip**,
 zero dependencies; the browser-entry integration (`entrySink` + the normalizers) is opt-in and adds
-**~3.2 KB** only when imported.
+**~2.9 KB** only when imported.
 
 ## Why
 
@@ -78,7 +79,9 @@ read. That means:
 - **Plug in the browser directly.** `entrySink` accepts raw `PerformanceObserver` entries and maps them
   onto the spec-canonical model — including the quirks a hand-rolled mapping gets wrong (0-as-absent
   phase sentinels, the double-delivered `first-input`, Chrome's experimental field spellings, the `-1`
-  positions that would corrupt a naive encoding).
+  positions that would corrupt a naive encoding). Element-pointing entries (LCP, layout shifts,
+  interactions, element timing) keep structured attribution: a structural CSS path plus the element's
+  tag/id/classes/`name` attribute — never element text.
 - **Or bring your own capture.** Use `web-vitals`, a framework's hooks, your own observers — every
   stream also has a typed feed method (`addResource`, `setLcp`, …) for pre-normalized data.
 - **First-class CPU profiling.** Raw [JS Self-Profiling](https://wicg.github.io/js-self-profiling/)
@@ -105,7 +108,7 @@ decoder or `DecompressionStream` even without a bundler.
 - **Self-describing & robust to missing data.** Every stream is optional; the manifest records what's
   present and, for anything absent, **why** (`unsupported` / `not-requested` / `dropped` /
   `policy-blocked`) plus loss/truncation and provenance. *Unknown is never confused with zero.*
-- **Versioned.** A wire `CODEC_VERSION` and a schema `FORMAT_VERSION` (both currently **2**), with
+- **Versioned.** A wire `CODEC_VERSION` and a schema `FORMAT_VERSION` (both currently **3**), with
   skippable sections/streams and self-describing manifest records so a reader pulls what it knows from a
   newer file — adding a stream never breaks an older reader (see
   [docs/FileFormat.md](docs/FileFormat.md) "Reading across versions").

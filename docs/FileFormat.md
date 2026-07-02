@@ -16,7 +16,7 @@ the code wins and this doc is the bug — a stale contract must be fixed (see [A
 ```
 [ magic: F5 52 55 4D ]          cleartext, 4 bytes — identify + sniff without decompressing
 [ codecVersion: varuint ]       currently 3   (v3: tick scale + delta chains + columnar arrays)
-[ formatVersion: varuint ]      currently 2   (Capture.formatVersion)
+[ formatVersion: varuint ]      currently 3   (Capture.formatVersion)
 [ gzip( body ) ]                everything below is gzipped as one stream
 ```
 
@@ -172,7 +172,8 @@ stream table stays total — every stream id has a descriptor):
 - **`navigation`** — a resource block followed by a navigation-extras block, one object (it
   specializes `resource`); `notRestoredReasons` within it is a recursive, null-discriminated tree.
 - **config `streams` / overhead `byStream`** — sparse `Record<streamIndex, value>` maps.
-- **rects** (layout-shift sources) — 4 stored values + spec-derived edges (below).
+- **rects** (layout-shift sources, the element-timing `intersectionRect`) — 4 stored values +
+  spec-derived edges (below).
 - **`profile` slices** — columnar (below).
 
 ### Rects — derived edges, integer fast path
@@ -231,8 +232,13 @@ nesting explicitly; `details` is a `JsonValue`.
   length-prefixed tail) so cross-version reading is sound. **codec v3 (current)** is a measured size
   pass (−14.5% post-gzip over the sample corpus, −13…−18% per capture): the tick-scale body prelude,
   per-scope `R` delta chains, column-major struct arrays at 8+ entries with transposed presence, and
-  the derived-edge rect encoding. **format v2 (current)** added the `METADATA` section and the
-  `customEvents` stream.
+  the derived-edge rect encoding. **format v2** added the `METADATA` section and the `customEvents`
+  stream. **format v3 (current)** completed the attribution/element surfaces: `ElementRef` gained
+  structured attributes (`tag`/`id`/`classes`/`name` beside `selector`), long tasks their entry-level
+  container `name`, and element timing its full spec field set (`name`, element `id`,
+  `intersectionRect`, the PaintTimingMixin pair) — a payload-layout change for the
+  `lcp`/`cls`/`interactions`/`longTasks`/`elementTiming` streams, so each bumped its `schemaVersion`
+  to 2 (format-v2 readers skip those payloads in v3 files and keep everything else).
 
 ### Reading across versions
 

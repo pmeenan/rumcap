@@ -52,6 +52,24 @@ including the degraded captures):
 - **Demos** — [`examples/capture`](../examples/capture) (a page capturing itself — rewritten on
   `entrySink`, verified end-to-end in headless Chrome) and [`examples/extension`](../examples/extension)
   (a Chrome MV3 harness).
+- **`FORMAT_VERSION` 3 — API-coverage completion (2026-07-02).** An audit of the schema against every
+  stable Web Performance API surfaced three gaps, all closed: structured element attribution
+  (`ElementRef` gained `tag`/`id`/`classes≤8`/`name` beside `selector` — LCP, shift sources,
+  interaction targets, element timing), the long-task entry-level container `name` (the corpus had it;
+  the model dropped it), and the element-timing spec completion (`name`, element `id`,
+  `intersectionRect`, PaintTimingMixin `paintTime`/`presentationTime`) —
+  `lcp`/`cls`/`interactions`/`longTasks`/`elementTiming` stream schemas → 2. Grounded by a NEW
+  local-fixture capture pair (Chrome 150, `samples/capture-tool/drive-local.mjs` + `fixture/`): the
+  first real corpus data for element timing, Server-Timing values, iframe long-task attribution
+  (`same-origin-descendant` + container fields), a populated bfcache `notRestoredReasons` tree, and
+  live mark/measure `detail` (incl. a React-style DevTools `detail.devtools` track measure). The same
+  pass fixed two normalizer honesty bugs the capture exposed (an entry-level `toJSON()` serializes
+  nested platform objects as `{}`: an empty rect must be absent, not zeros; Chrome 150 serializes even
+  a null `notRestoredReasons` as `{}` — dropped like the empty `confidence`) and documented the
+  coverage matrix + framework-profiling recipes (React 19 tracks / `<Profiler>` bridge / Vue) in
+  API.md. Deliberately still out: soft navigations (experimental; app marks remain the SPA signal) and
+  `console.timeStamp` DevTools entries (unobservable by any web API). Encode bundle: quickstart set
+  9.3 → ~9.5 KB gzip (+0.24 KB for the attribute capture); public-corpus wire sizes unchanged.
 
 ## Next
 
@@ -63,7 +81,8 @@ including the degraded captures):
   flushes stream bytes as they settle and only writes the small string table at unload (true "no unload
   cliff" streaming output, and/or a `ReadableStream` result from `finish()`) is a possible follow-up.
 - **Wider corpus** — Safari/Firefox captures (real degraded variants) and a page with opaque
-  third-party JS to exercise profiler-frame redaction.
+  third-party JS to exercise profiler-frame redaction. (Element timing, Server-Timing, bfcache
+  reasons, and iframe long-task attribution are now grounded by the local fixture pair.)
 - **Freeze the format** — once validated against more real captures, leave `FORMAT_VERSION` draft and
   document migrations in [FileFormat.md](FileFormat.md).
 

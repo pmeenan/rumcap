@@ -1,0 +1,3007 @@
+{
+  "spikeVersion": 3,
+  "url": "http://127.0.0.1:36877/",
+  "title": "rumcap local fixture",
+  "bodyTextLength": 400,
+  "looksBlocked": false,
+  "clock": {
+    "timeOrigin": 1783005608251.8,
+    "now": 3479.5,
+    "timestampUnit": "ms",
+    "timestampBase": "timeOrigin"
+  },
+  "supportedEntryTypes": [
+    "element",
+    "event",
+    "first-input",
+    "largest-contentful-paint",
+    "layout-shift",
+    "long-animation-frame",
+    "longtask",
+    "mark",
+    "measure",
+    "navigation",
+    "paint",
+    "resource",
+    "visibility-state"
+  ],
+  "environment": {
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "userAgentData": {
+      "brands": [],
+      "mobile": false,
+      "platform": ""
+    },
+    "deviceMemory": 32,
+    "hardwareConcurrency": 12,
+    "connection": {
+      "effectiveType": "4g",
+      "rtt": 100,
+      "downlink": 1.45,
+      "saveData": false
+    },
+    "viewportWidth": 1366,
+    "viewportHeight": 768,
+    "screenWidth": 1366,
+    "screenHeight": 768,
+    "devicePixelRatio": 1,
+    "selfProfiler": "available"
+  },
+  "streams": {
+    "navigation": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "http://127.0.0.1:36877/",
+          "entryType": "navigation",
+          "startTime": 0,
+          "duration": 0,
+          "initiatorType": "navigation",
+          "deliveryType": "",
+          "nextHopProtocol": "http/1.1",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "text/html",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 0.5999999940395355,
+          "domainLookupStart": 0.5999999940395355,
+          "domainLookupEnd": 0.5999999940395355,
+          "connectStart": 0.5999999940395355,
+          "secureConnectionStart": 0,
+          "connectEnd": 0.5999999940395355,
+          "requestStart": 1.4000000059604645,
+          "responseStart": 18.099999994039536,
+          "firstInterimResponseStart": 0,
+          "finalResponseHeadersStart": 18.099999994039536,
+          "responseEnd": 0,
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "responseStatus": 200,
+          "serverTiming": [
+            {},
+            {},
+            {},
+            {}
+          ],
+          "unloadEventStart": 0,
+          "unloadEventEnd": 0,
+          "domInteractive": 0,
+          "domContentLoadedEventStart": 0,
+          "domContentLoadedEventEnd": 0,
+          "domComplete": 0,
+          "loadEventStart": 0,
+          "loadEventEnd": 0,
+          "type": "navigate",
+          "redirectCount": 0,
+          "activationStart": 0,
+          "criticalCHRestart": 0,
+          "notRestoredReasons": null,
+          "confidence": null,
+          "__attribution": {
+            "serverTiming": [
+              {
+                "name": "db",
+                "duration": 53.2,
+                "description": "primary shard"
+              },
+              {
+                "name": "cache",
+                "duration": 0,
+                "description": "hit"
+              },
+              {
+                "name": "edge",
+                "duration": 1.4,
+                "description": ""
+              },
+              {
+                "name": "queue",
+                "duration": 0,
+                "description": ""
+              }
+            ],
+            "notRestoredReasons": null
+          }
+        },
+        {
+          "name": "http://127.0.0.1:36877/",
+          "entryType": "navigation",
+          "startTime": 0,
+          "duration": 128.20000000298023,
+          "initiatorType": "navigation",
+          "deliveryType": "",
+          "nextHopProtocol": "http/1.1",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "text/html",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 0.5999999940395355,
+          "domainLookupStart": 0.5999999940395355,
+          "domainLookupEnd": 0.5999999940395355,
+          "connectStart": 0.5999999940395355,
+          "secureConnectionStart": 0,
+          "connectEnd": 0.5999999940395355,
+          "requestStart": 1.4000000059604645,
+          "responseStart": 18.099999994039536,
+          "firstInterimResponseStart": 0,
+          "finalResponseHeadersStart": 18.099999994039536,
+          "responseEnd": 19.400000005960464,
+          "transferSize": 5643,
+          "encodedBodySize": 5343,
+          "decodedBodySize": 5343,
+          "responseStatus": 200,
+          "serverTiming": [
+            {},
+            {},
+            {},
+            {}
+          ],
+          "unloadEventStart": 0,
+          "unloadEventEnd": 0,
+          "domInteractive": 28,
+          "domContentLoadedEventStart": 28,
+          "domContentLoadedEventEnd": 28,
+          "domComplete": 128.20000000298023,
+          "loadEventStart": 128.20000000298023,
+          "loadEventEnd": 128.20000000298023,
+          "type": "navigate",
+          "redirectCount": 0,
+          "activationStart": 0,
+          "criticalCHRestart": 0,
+          "notRestoredReasons": null,
+          "confidence": {},
+          "__attribution": {
+            "serverTiming": [
+              {
+                "name": "db",
+                "duration": 53.2,
+                "description": "primary shard"
+              },
+              {
+                "name": "cache",
+                "duration": 0,
+                "description": "hit"
+              },
+              {
+                "name": "edge",
+                "duration": 1.4,
+                "description": ""
+              },
+              {
+                "name": "queue",
+                "duration": 0,
+                "description": ""
+              }
+            ],
+            "notRestoredReasons": null
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "resource": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "http://127.0.0.1:36877/hero.svg",
+          "entryType": "resource",
+          "startTime": 22.599999994039536,
+          "duration": 83.20000000298023,
+          "initiatorType": "img",
+          "deliveryType": "",
+          "nextHopProtocol": "http/1.1",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "image/svg+xml",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 22.599999994039536,
+          "domainLookupStart": 22.599999994039536,
+          "domainLookupEnd": 22.599999994039536,
+          "connectStart": 22.599999994039536,
+          "secureConnectionStart": 0,
+          "connectEnd": 22.599999994039536,
+          "requestStart": 23.200000002980232,
+          "responseStart": 104.79999999701977,
+          "firstInterimResponseStart": 0,
+          "finalResponseHeadersStart": 104.79999999701977,
+          "responseEnd": 105.79999999701977,
+          "transferSize": 27371,
+          "encodedBodySize": 27071,
+          "decodedBodySize": 27071,
+          "responseStatus": 200,
+          "serverTiming": [
+            {}
+          ],
+          "__attribution": {
+            "serverTiming": [
+              {
+                "name": "origin",
+                "duration": 11.3,
+                "description": "edge-cache-miss"
+              }
+            ]
+          }
+        },
+        {
+          "name": "http://127.0.0.1:36877/thumb.svg",
+          "entryType": "resource",
+          "startTime": 22.799999997019768,
+          "duration": 27.700000002980232,
+          "initiatorType": "img",
+          "deliveryType": "",
+          "nextHopProtocol": "http/1.1",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "image/svg+xml",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 22.799999997019768,
+          "domainLookupStart": 22.799999997019768,
+          "domainLookupEnd": 22.799999997019768,
+          "connectStart": 22.799999997019768,
+          "secureConnectionStart": 0,
+          "connectEnd": 22.799999997019768,
+          "requestStart": 23.299999997019768,
+          "responseStart": 49.29999999701977,
+          "firstInterimResponseStart": 0,
+          "finalResponseHeadersStart": 49.29999999701977,
+          "responseEnd": 50.5,
+          "transferSize": 4371,
+          "encodedBodySize": 4071,
+          "decodedBodySize": 4071,
+          "responseStatus": 200,
+          "serverTiming": []
+        },
+        {
+          "name": "http://127.0.0.1:36877/frame.html",
+          "entryType": "resource",
+          "startTime": 26.599999994039536,
+          "duration": 4,
+          "initiatorType": "iframe",
+          "deliveryType": "",
+          "nextHopProtocol": "http/1.1",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "text/html",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 26.599999994039536,
+          "domainLookupStart": 27.900000005960464,
+          "domainLookupEnd": 27.900000005960464,
+          "connectStart": 27.900000005960464,
+          "secureConnectionStart": 0,
+          "connectEnd": 28,
+          "requestStart": 28.400000005960464,
+          "responseStart": 29.900000005960464,
+          "firstInterimResponseStart": 0,
+          "finalResponseHeadersStart": 29.900000005960464,
+          "responseEnd": 30.599999994039536,
+          "transferSize": 1016,
+          "encodedBodySize": 716,
+          "decodedBodySize": 716,
+          "responseStatus": 200,
+          "serverTiming": []
+        },
+        {
+          "name": "http://127.0.0.1:36877/api/data.json",
+          "entryType": "resource",
+          "startTime": 27.299999997019768,
+          "duration": 42.5,
+          "initiatorType": "fetch",
+          "deliveryType": "",
+          "nextHopProtocol": "http/1.1",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "application/json",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 27.299999997019768,
+          "domainLookupStart": 28,
+          "domainLookupEnd": 28,
+          "connectStart": 28,
+          "secureConnectionStart": 0,
+          "connectEnd": 28.200000002980232,
+          "requestStart": 28.5,
+          "responseStart": 68.90000000596046,
+          "firstInterimResponseStart": 0,
+          "finalResponseHeadersStart": 68.90000000596046,
+          "responseEnd": 69.79999999701977,
+          "transferSize": 327,
+          "encodedBodySize": 27,
+          "decodedBodySize": 27,
+          "responseStatus": 200,
+          "serverTiming": [
+            {},
+            {}
+          ],
+          "__attribution": {
+            "serverTiming": [
+              {
+                "name": "db",
+                "duration": 12.5,
+                "description": "user lookup"
+              },
+              {
+                "name": "cache",
+                "duration": 0,
+                "description": "miss"
+              }
+            ]
+          }
+        },
+        {
+          "name": "http://127.0.0.1:36877/favicon.ico",
+          "entryType": "resource",
+          "startTime": 129.5,
+          "duration": 1.5,
+          "initiatorType": "other",
+          "deliveryType": "",
+          "nextHopProtocol": "http/1.1",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "text/plain",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 129.5,
+          "domainLookupStart": 129.5,
+          "domainLookupEnd": 129.5,
+          "connectStart": 129.5,
+          "secureConnectionStart": 0,
+          "connectEnd": 129.5,
+          "requestStart": 129.90000000596046,
+          "responseStart": 130.20000000298023,
+          "firstInterimResponseStart": 0,
+          "finalResponseHeadersStart": 130.20000000298023,
+          "responseEnd": 131,
+          "transferSize": 309,
+          "encodedBodySize": 9,
+          "decodedBodySize": 9,
+          "responseStatus": 404,
+          "serverTiming": []
+        }
+      ],
+      "dropped": 0
+    },
+    "paint": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "first-paint",
+          "entryType": "paint",
+          "startTime": 44,
+          "duration": 0,
+          "paintTime": 37.099999994039536,
+          "presentationTime": 44
+        },
+        {
+          "name": "first-contentful-paint",
+          "entryType": "paint",
+          "startTime": 44,
+          "duration": 0,
+          "paintTime": 37.099999994039536,
+          "presentationTime": 44
+        }
+      ],
+      "dropped": 0
+    },
+    "largest-contentful-paint": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "",
+          "entryType": "largest-contentful-paint",
+          "startTime": 44,
+          "duration": 0,
+          "paintTime": 37.099999994039536,
+          "presentationTime": 44,
+          "size": 51120,
+          "renderTime": 44,
+          "loadTime": 0,
+          "id": "intro",
+          "url": "",
+          "__attribution": {
+            "element": "p#intro",
+            "url": null,
+            "loadTime": 0,
+            "renderTime": 44,
+            "size": 51120,
+            "elementAttrs": {
+              "tag": "p",
+              "id": "intro",
+              "classes": [
+                "copy",
+                "lead"
+              ]
+            }
+          }
+        },
+        {
+          "name": "",
+          "entryType": "largest-contentful-paint",
+          "startTime": 132,
+          "duration": 0,
+          "paintTime": 126,
+          "presentationTime": 132,
+          "size": 180000,
+          "renderTime": 132,
+          "loadTime": 124.59999999403954,
+          "id": "hero",
+          "url": "http://127.0.0.1:36877/hero.svg",
+          "__attribution": {
+            "element": "img#hero",
+            "url": "http://127.0.0.1:36877/hero.svg",
+            "loadTime": 124.59999999403954,
+            "renderTime": 132,
+            "size": 180000,
+            "elementAttrs": {
+              "tag": "img",
+              "id": "hero",
+              "classes": [
+                "hero-img",
+                "primary"
+              ]
+            }
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "layout-shift": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "",
+          "entryType": "layout-shift",
+          "startTime": 727.7999999970198,
+          "duration": 0,
+          "value": 0.0298721688199512,
+          "hadRecentInput": false,
+          "lastInputTime": 0,
+          "sources": [
+            {},
+            {},
+            {},
+            {}
+          ],
+          "__attribution": {
+            "value": 0.0298721688199512,
+            "hadRecentInput": false,
+            "sources": [
+              {
+                "node": "main#content",
+                "attrs": {
+                  "tag": "main",
+                  "id": "content",
+                  "classes": [
+                    "page-main"
+                  ]
+                },
+                "previousRect": {
+                  "x": 24,
+                  "y": 140.4375,
+                  "width": 720,
+                  "height": 497,
+                  "top": 140.4375,
+                  "right": 744,
+                  "bottom": 637.4375,
+                  "left": 24
+                },
+                "currentRect": {
+                  "x": 24,
+                  "y": 223.875,
+                  "width": 720,
+                  "height": 497,
+                  "top": 223.875,
+                  "right": 744,
+                  "bottom": 720.875,
+                  "left": 24
+                }
+              },
+              {
+                "node": "header#top",
+                "attrs": {
+                  "tag": "header",
+                  "id": "top",
+                  "classes": [
+                    "page-header"
+                  ]
+                },
+                "previousRect": {
+                  "x": 24,
+                  "y": 24,
+                  "width": 720,
+                  "height": 48,
+                  "top": 24,
+                  "right": 744,
+                  "bottom": 72,
+                  "left": 24
+                },
+                "currentRect": {
+                  "x": 24,
+                  "y": 107.4375,
+                  "width": 720,
+                  "height": 48,
+                  "top": 107.4375,
+                  "right": 744,
+                  "bottom": 155.4375,
+                  "left": 24
+                }
+              },
+              {
+                "node": "html > body > section.controls",
+                "attrs": {
+                  "tag": "section",
+                  "classes": [
+                    "controls"
+                  ]
+                },
+                "previousRect": {
+                  "x": 24,
+                  "y": 93.4375,
+                  "width": 720,
+                  "height": 31,
+                  "top": 93.4375,
+                  "right": 744,
+                  "bottom": 124.4375,
+                  "left": 24
+                },
+                "currentRect": {
+                  "x": 24,
+                  "y": 176.875,
+                  "width": 720,
+                  "height": 31,
+                  "top": 176.875,
+                  "right": 744,
+                  "bottom": 207.875,
+                  "left": 24
+                }
+              },
+              {
+                "node": "iframe#taskframe",
+                "attrs": {
+                  "tag": "iframe",
+                  "id": "taskframe",
+                  "classes": [
+                    "task-frame"
+                  ],
+                  "name": "tasky"
+                },
+                "previousRect": {
+                  "x": 24,
+                  "y": 637.4375,
+                  "width": 322,
+                  "height": 62,
+                  "top": 637.4375,
+                  "right": 346,
+                  "bottom": 699.4375,
+                  "left": 24
+                },
+                "currentRect": {
+                  "x": 24,
+                  "y": 720.875,
+                  "width": 322,
+                  "height": 47.125,
+                  "top": 720.875,
+                  "right": 346,
+                  "bottom": 768,
+                  "left": 24
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "",
+          "entryType": "layout-shift",
+          "startTime": 1814.7999999970198,
+          "duration": 0,
+          "value": 0.008350164812898232,
+          "hadRecentInput": true,
+          "lastInputTime": 1743.7000000029802,
+          "sources": [
+            {},
+            {},
+            {},
+            {}
+          ],
+          "__attribution": {
+            "value": 0.008350164812898232,
+            "hadRecentInput": true,
+            "sources": [
+              {
+                "node": "img#hero",
+                "attrs": {
+                  "tag": "img",
+                  "id": "hero",
+                  "classes": [
+                    "hero-img",
+                    "primary"
+                  ]
+                },
+                "previousRect": {
+                  "x": 24,
+                  "y": 312.875,
+                  "width": 600,
+                  "height": 300,
+                  "top": 312.875,
+                  "right": 624,
+                  "bottom": 612.875,
+                  "left": 24
+                },
+                "currentRect": {
+                  "x": 24,
+                  "y": 352.875,
+                  "width": 600,
+                  "height": 300,
+                  "top": 352.875,
+                  "right": 624,
+                  "bottom": 652.875,
+                  "left": 24
+                }
+              },
+              {
+                "node": "p#intro",
+                "attrs": {
+                  "tag": "p",
+                  "id": "intro",
+                  "classes": [
+                    "copy",
+                    "lead"
+                  ]
+                },
+                "previousRect": {
+                  "x": 24,
+                  "y": 223.875,
+                  "width": 720,
+                  "height": 73,
+                  "top": 223.875,
+                  "right": 744,
+                  "bottom": 296.875,
+                  "left": 24
+                },
+                "currentRect": {
+                  "x": 24,
+                  "y": 263.875,
+                  "width": 720,
+                  "height": 73,
+                  "top": 263.875,
+                  "right": 744,
+                  "bottom": 336.875,
+                  "left": 24
+                }
+              },
+              {
+                "node": "iframe#taskframe",
+                "attrs": {
+                  "tag": "iframe",
+                  "id": "taskframe",
+                  "classes": [
+                    "task-frame"
+                  ],
+                  "name": "tasky"
+                },
+                "previousRect": {
+                  "x": 24,
+                  "y": 720.875,
+                  "width": 322,
+                  "height": 47.125,
+                  "top": 720.875,
+                  "right": 346,
+                  "bottom": 768,
+                  "left": 24
+                },
+                "currentRect": {
+                  "x": 24,
+                  "y": 760.875,
+                  "width": 322,
+                  "height": 7.125,
+                  "top": 760.875,
+                  "right": 346,
+                  "bottom": 768,
+                  "left": 24
+                }
+              },
+              {
+                "node": "img#thumb",
+                "attrs": {
+                  "tag": "img",
+                  "id": "thumb",
+                  "classes": [
+                    "thumb"
+                  ]
+                },
+                "previousRect": {
+                  "x": 24,
+                  "y": 624.875,
+                  "width": 96,
+                  "height": 96,
+                  "top": 624.875,
+                  "right": 120,
+                  "bottom": 720.875,
+                  "left": 24
+                },
+                "currentRect": {
+                  "x": 24,
+                  "y": 664.875,
+                  "width": 96,
+                  "height": 96,
+                  "top": 664.875,
+                  "right": 120,
+                  "bottom": 760.875,
+                  "left": 24
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "first-input": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "pointerdown",
+          "entryType": "first-input",
+          "startTime": 1743.5999999940395,
+          "duration": 72,
+          "interactionId": 867,
+          "processingStart": 1743.9000000059605,
+          "processingEnd": 1743.9000000059605,
+          "cancelable": true,
+          "__attribution": {
+            "name": "pointerdown",
+            "target": null,
+            "interactionId": 867,
+            "processingStart": 1743.9000000059605,
+            "processingEnd": 1743.9000000059605
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "event": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "pointerover",
+          "entryType": "event",
+          "startTime": 25.400000005960464,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 36.900000005960464,
+          "processingEnd": 36.900000005960464,
+          "cancelable": true,
+          "__attribution": {
+            "name": "pointerover",
+            "target": null,
+            "interactionId": 0,
+            "processingStart": 36.900000005960464,
+            "processingEnd": 36.900000005960464
+          }
+        },
+        {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 25.400000005960464,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 36.900000005960464,
+          "processingEnd": 36.900000005960464,
+          "cancelable": false,
+          "__attribution": {
+            "name": "pointerenter",
+            "target": null,
+            "interactionId": 0,
+            "processingStart": 36.900000005960464,
+            "processingEnd": 36.900000005960464
+          }
+        },
+        {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 25.400000005960464,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 36.900000005960464,
+          "processingEnd": 36.900000005960464,
+          "cancelable": false,
+          "__attribution": {
+            "name": "pointerenter",
+            "target": null,
+            "interactionId": 0,
+            "processingStart": 36.900000005960464,
+            "processingEnd": 36.900000005960464
+          }
+        },
+        {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 25.400000005960464,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 36.900000005960464,
+          "processingEnd": 36.900000005960464,
+          "cancelable": false,
+          "__attribution": {
+            "name": "pointerenter",
+            "target": null,
+            "interactionId": 0,
+            "processingStart": 36.900000005960464,
+            "processingEnd": 36.900000005960464
+          }
+        },
+        {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 25.400000005960464,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 36.900000005960464,
+          "processingEnd": 36.900000005960464,
+          "cancelable": false,
+          "__attribution": {
+            "name": "pointerenter",
+            "target": null,
+            "interactionId": 0,
+            "processingStart": 36.900000005960464,
+            "processingEnd": 36.900000005960464
+          }
+        },
+        {
+          "name": "mouseover",
+          "entryType": "event",
+          "startTime": 25.400000005960464,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 36.900000005960464,
+          "processingEnd": 36.900000005960464,
+          "cancelable": true,
+          "__attribution": {
+            "name": "mouseover",
+            "target": "main#content",
+            "interactionId": 0,
+            "processingStart": 36.900000005960464,
+            "processingEnd": 36.900000005960464,
+            "targetAttrs": {
+              "tag": "main",
+              "id": "content",
+              "classes": [
+                "page-main"
+              ]
+            }
+          }
+        },
+        {
+          "name": "pointerout",
+          "entryType": "event",
+          "startTime": 1743.5,
+          "duration": 72,
+          "interactionId": 0,
+          "processingStart": 1743.7000000029802,
+          "processingEnd": 1743.7000000029802,
+          "cancelable": true,
+          "__attribution": {
+            "name": "pointerout",
+            "target": null,
+            "interactionId": 0,
+            "processingStart": 1743.7000000029802,
+            "processingEnd": 1743.7000000029802
+          }
+        },
+        {
+          "name": "pointerleave",
+          "entryType": "event",
+          "startTime": 1743.5,
+          "duration": 72,
+          "interactionId": 0,
+          "processingStart": 1743.7000000029802,
+          "processingEnd": 1743.7000000029802,
+          "cancelable": false,
+          "__attribution": {
+            "name": "pointerleave",
+            "target": null,
+            "interactionId": 0,
+            "processingStart": 1743.7000000029802,
+            "processingEnd": 1743.7000000029802
+          }
+        },
+        {
+          "name": "pointerleave",
+          "entryType": "event",
+          "startTime": 1743.5,
+          "duration": 72,
+          "interactionId": 0,
+          "processingStart": 1743.7000000029802,
+          "processingEnd": 1743.7000000029802,
+          "cancelable": false,
+          "__attribution": {
+            "name": "pointerleave",
+            "target": null,
+            "interactionId": 0,
+            "processingStart": 1743.7000000029802,
+            "processingEnd": 1743.7000000029802
+          }
+        },
+        {
+          "name": "pointerover",
+          "entryType": "event",
+          "startTime": 1743.5,
+          "duration": 72,
+          "interactionId": 0,
+          "processingStart": 1743.7000000029802,
+          "processingEnd": 1743.7000000029802,
+          "cancelable": true,
+          "__attribution": {
+            "name": "pointerover",
+            "target": null,
+            "interactionId": 0,
+            "processingStart": 1743.7000000029802,
+            "processingEnd": 1743.7000000029802
+          }
+        },
+        {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1743.5,
+          "duration": 72,
+          "interactionId": 0,
+          "processingStart": 1743.7000000029802,
+          "processingEnd": 1743.7000000029802,
+          "cancelable": false,
+          "__attribution": {
+            "name": "pointerenter",
+            "target": null,
+            "interactionId": 0,
+            "processingStart": 1743.7000000029802,
+            "processingEnd": 1743.7000000029802
+          }
+        },
+        {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1743.5,
+          "duration": 72,
+          "interactionId": 0,
+          "processingStart": 1743.7000000029802,
+          "processingEnd": 1743.7000000029802,
+          "cancelable": false,
+          "__attribution": {
+            "name": "pointerenter",
+            "target": null,
+            "interactionId": 0,
+            "processingStart": 1743.7000000029802,
+            "processingEnd": 1743.7000000029802
+          }
+        },
+        {
+          "name": "mouseout",
+          "entryType": "event",
+          "startTime": 1743.5,
+          "duration": 72,
+          "interactionId": 0,
+          "processingStart": 1743.7999999970198,
+          "processingEnd": 1743.7999999970198,
+          "cancelable": true,
+          "__attribution": {
+            "name": "mouseout",
+            "target": "p#intro",
+            "interactionId": 0,
+            "processingStart": 1743.7999999970198,
+            "processingEnd": 1743.7999999970198,
+            "targetAttrs": {
+              "tag": "p",
+              "id": "intro",
+              "classes": [
+                "copy",
+                "lead"
+              ]
+            }
+          }
+        },
+        {
+          "name": "mouseover",
+          "entryType": "event",
+          "startTime": 1743.5,
+          "duration": 72,
+          "interactionId": 0,
+          "processingStart": 1743.7999999970198,
+          "processingEnd": 1743.7999999970198,
+          "cancelable": true,
+          "__attribution": {
+            "name": "mouseover",
+            "target": "button#go",
+            "interactionId": 0,
+            "processingStart": 1743.7999999970198,
+            "processingEnd": 1743.7999999970198,
+            "targetAttrs": {
+              "tag": "button",
+              "id": "go",
+              "classes": [
+                "btn",
+                "cta"
+              ],
+              "name": "submit"
+            }
+          }
+        },
+        {
+          "name": "pointerdown",
+          "entryType": "event",
+          "startTime": 1743.5999999940395,
+          "duration": 72,
+          "interactionId": 867,
+          "processingStart": 1743.9000000059605,
+          "processingEnd": 1743.9000000059605,
+          "cancelable": true,
+          "__attribution": {
+            "name": "pointerdown",
+            "target": null,
+            "interactionId": 867,
+            "processingStart": 1743.9000000059605,
+            "processingEnd": 1743.9000000059605
+          }
+        },
+        {
+          "name": "mousedown",
+          "entryType": "event",
+          "startTime": 1743.5999999940395,
+          "duration": 72,
+          "interactionId": 0,
+          "processingStart": 1743.9000000059605,
+          "processingEnd": 1743.9000000059605,
+          "cancelable": true,
+          "__attribution": {
+            "name": "mousedown",
+            "target": "button#go",
+            "interactionId": 0,
+            "processingStart": 1743.9000000059605,
+            "processingEnd": 1743.9000000059605,
+            "targetAttrs": {
+              "tag": "button",
+              "id": "go",
+              "classes": [
+                "btn",
+                "cta"
+              ],
+              "name": "submit"
+            }
+          }
+        },
+        {
+          "name": "pointerup",
+          "entryType": "event",
+          "startTime": 1743.7000000029802,
+          "duration": 72,
+          "interactionId": 867,
+          "processingStart": 1744.0999999940395,
+          "processingEnd": 1744.0999999940395,
+          "cancelable": true,
+          "__attribution": {
+            "name": "pointerup",
+            "target": null,
+            "interactionId": 867,
+            "processingStart": 1744.0999999940395,
+            "processingEnd": 1744.0999999940395
+          }
+        },
+        {
+          "name": "mouseup",
+          "entryType": "event",
+          "startTime": 1743.7000000029802,
+          "duration": 72,
+          "interactionId": 0,
+          "processingStart": 1744.0999999940395,
+          "processingEnd": 1744.0999999940395,
+          "cancelable": true,
+          "__attribution": {
+            "name": "mouseup",
+            "target": "button#go",
+            "interactionId": 0,
+            "processingStart": 1744.0999999940395,
+            "processingEnd": 1744.0999999940395,
+            "targetAttrs": {
+              "tag": "button",
+              "id": "go",
+              "classes": [
+                "btn",
+                "cta"
+              ],
+              "name": "submit"
+            }
+          }
+        },
+        {
+          "name": "click",
+          "entryType": "event",
+          "startTime": 1743.7000000029802,
+          "duration": 72,
+          "interactionId": 867,
+          "processingStart": 1744.0999999940395,
+          "processingEnd": 1814.4000000059605,
+          "cancelable": true,
+          "__attribution": {
+            "name": "click",
+            "target": "button#go",
+            "interactionId": 867,
+            "processingStart": 1744.0999999940395,
+            "processingEnd": 1814.4000000059605,
+            "targetAttrs": {
+              "tag": "button",
+              "id": "go",
+              "classes": [
+                "btn",
+                "cta"
+              ],
+              "name": "submit"
+            }
+          }
+        },
+        {
+          "name": "keydown",
+          "entryType": "event",
+          "startTime": 1820.5999999940395,
+          "duration": 32,
+          "interactionId": 874,
+          "processingStart": 1820.9000000059605,
+          "processingEnd": 1846,
+          "cancelable": true,
+          "__attribution": {
+            "name": "keydown",
+            "target": "input#email-field",
+            "interactionId": 874,
+            "processingStart": 1820.9000000059605,
+            "processingEnd": 1846,
+            "targetAttrs": {
+              "tag": "input",
+              "id": "email-field",
+              "classes": [
+                "field",
+                "wide"
+              ],
+              "name": "email"
+            }
+          }
+        },
+        {
+          "name": "keypress",
+          "entryType": "event",
+          "startTime": 1820.5999999940395,
+          "duration": 32,
+          "interactionId": 874,
+          "processingStart": 1846,
+          "processingEnd": 1846.5,
+          "cancelable": true,
+          "__attribution": {
+            "name": "keypress",
+            "target": "input#email-field",
+            "interactionId": 874,
+            "processingStart": 1846,
+            "processingEnd": 1846.5,
+            "targetAttrs": {
+              "tag": "input",
+              "id": "email-field",
+              "classes": [
+                "field",
+                "wide"
+              ],
+              "name": "email"
+            }
+          }
+        },
+        {
+          "name": "keydown",
+          "entryType": "event",
+          "startTime": 1878.2999999970198,
+          "duration": 24,
+          "interactionId": 881,
+          "processingStart": 1878.4000000059605,
+          "processingEnd": 1903.5,
+          "cancelable": true,
+          "__attribution": {
+            "name": "keydown",
+            "target": "input#email-field",
+            "interactionId": 881,
+            "processingStart": 1878.4000000059605,
+            "processingEnd": 1903.5,
+            "targetAttrs": {
+              "tag": "input",
+              "id": "email-field",
+              "classes": [
+                "field",
+                "wide"
+              ],
+              "name": "email"
+            }
+          }
+        },
+        {
+          "name": "keypress",
+          "entryType": "event",
+          "startTime": 1878.2999999970198,
+          "duration": 24,
+          "interactionId": 881,
+          "processingStart": 1903.5,
+          "processingEnd": 1904,
+          "cancelable": true,
+          "__attribution": {
+            "name": "keypress",
+            "target": "input#email-field",
+            "interactionId": 881,
+            "processingStart": 1903.5,
+            "processingEnd": 1904,
+            "targetAttrs": {
+              "tag": "input",
+              "id": "email-field",
+              "classes": [
+                "field",
+                "wide"
+              ],
+              "name": "email"
+            }
+          }
+        },
+        {
+          "name": "keydown",
+          "entryType": "event",
+          "startTime": 1935.5999999940395,
+          "duration": 24,
+          "interactionId": 888,
+          "processingStart": 1935.7999999970198,
+          "processingEnd": 1960.9000000059605,
+          "cancelable": true,
+          "__attribution": {
+            "name": "keydown",
+            "target": "input#email-field",
+            "interactionId": 888,
+            "processingStart": 1935.7999999970198,
+            "processingEnd": 1960.9000000059605,
+            "targetAttrs": {
+              "tag": "input",
+              "id": "email-field",
+              "classes": [
+                "field",
+                "wide"
+              ],
+              "name": "email"
+            }
+          }
+        },
+        {
+          "name": "keypress",
+          "entryType": "event",
+          "startTime": 1935.5999999940395,
+          "duration": 24,
+          "interactionId": 888,
+          "processingStart": 1960.9000000059605,
+          "processingEnd": 1961.2999999970198,
+          "cancelable": true,
+          "__attribution": {
+            "name": "keypress",
+            "target": "input#email-field",
+            "interactionId": 888,
+            "processingStart": 1960.9000000059605,
+            "processingEnd": 1961.2999999970198,
+            "targetAttrs": {
+              "tag": "input",
+              "id": "email-field",
+              "classes": [
+                "field",
+                "wide"
+              ],
+              "name": "email"
+            }
+          }
+        },
+        {
+          "name": "keydown",
+          "entryType": "event",
+          "startTime": 1992.7000000029802,
+          "duration": 24,
+          "interactionId": 895,
+          "processingStart": 1992.7999999970198,
+          "processingEnd": 2017.7999999970198,
+          "cancelable": true,
+          "__attribution": {
+            "name": "keydown",
+            "target": "input#email-field",
+            "interactionId": 895,
+            "processingStart": 1992.7999999970198,
+            "processingEnd": 2017.7999999970198,
+            "targetAttrs": {
+              "tag": "input",
+              "id": "email-field",
+              "classes": [
+                "field",
+                "wide"
+              ],
+              "name": "email"
+            }
+          }
+        },
+        {
+          "name": "keypress",
+          "entryType": "event",
+          "startTime": 1992.7000000029802,
+          "duration": 24,
+          "interactionId": 895,
+          "processingStart": 2017.7999999970198,
+          "processingEnd": 2018.0999999940395,
+          "cancelable": true,
+          "__attribution": {
+            "name": "keypress",
+            "target": "input#email-field",
+            "interactionId": 895,
+            "processingStart": 2017.7999999970198,
+            "processingEnd": 2018.0999999940395,
+            "targetAttrs": {
+              "tag": "input",
+              "id": "email-field",
+              "classes": [
+                "field",
+                "wide"
+              ],
+              "name": "email"
+            }
+          }
+        },
+        {
+          "name": "keydown",
+          "entryType": "event",
+          "startTime": 2049.9000000059605,
+          "duration": 32,
+          "interactionId": 902,
+          "processingStart": 2050,
+          "processingEnd": 2075.5,
+          "cancelable": true,
+          "__attribution": {
+            "name": "keydown",
+            "target": "input#email-field",
+            "interactionId": 902,
+            "processingStart": 2050,
+            "processingEnd": 2075.5,
+            "targetAttrs": {
+              "tag": "input",
+              "id": "email-field",
+              "classes": [
+                "field",
+                "wide"
+              ],
+              "name": "email"
+            }
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "longtask": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "same-origin-descendant",
+          "entryType": "longtask",
+          "startTime": 40.70000000298023,
+          "duration": 80,
+          "attribution": [
+            {}
+          ],
+          "__attribution": {
+            "attribution": [
+              {
+                "name": "unknown",
+                "entryType": "taskattribution",
+                "startTime": 0,
+                "duration": 0,
+                "containerType": "iframe",
+                "containerSrc": "/frame.html",
+                "containerId": "taskframe",
+                "containerName": "tasky"
+              }
+            ]
+          }
+        },
+        {
+          "name": "same-origin-descendant",
+          "entryType": "longtask",
+          "startTime": 421,
+          "duration": 100,
+          "attribution": [
+            {}
+          ],
+          "__attribution": {
+            "attribution": [
+              {
+                "name": "unknown",
+                "entryType": "taskattribution",
+                "startTime": 0,
+                "duration": 0,
+                "containerType": "iframe",
+                "containerSrc": "/frame.html",
+                "containerId": "taskframe",
+                "containerName": "tasky"
+              }
+            ]
+          }
+        },
+        {
+          "name": "self",
+          "entryType": "longtask",
+          "startTime": 527,
+          "duration": 120,
+          "attribution": [
+            {}
+          ],
+          "__attribution": {
+            "attribution": [
+              {
+                "name": "unknown",
+                "entryType": "taskattribution",
+                "startTime": 0,
+                "duration": 0,
+                "containerType": "window",
+                "containerSrc": "",
+                "containerId": "",
+                "containerName": ""
+              }
+            ]
+          }
+        },
+        {
+          "name": "self",
+          "entryType": "longtask",
+          "startTime": 1743.7999999970198,
+          "duration": 71,
+          "attribution": [
+            {}
+          ],
+          "__attribution": {
+            "attribution": [
+              {
+                "name": "unknown",
+                "entryType": "taskattribution",
+                "startTime": 0,
+                "duration": 0,
+                "containerType": "window",
+                "containerSrc": "",
+                "containerId": "",
+                "containerName": ""
+              }
+            ]
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "long-animation-frame": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "long-animation-frame",
+          "entryType": "long-animation-frame",
+          "startTime": 37.79999999701977,
+          "duration": 88.20000000298023,
+          "paintTime": 126,
+          "presentationTime": 132,
+          "renderStart": 124.90000000596046,
+          "styleAndLayoutStart": 124.90000000596046,
+          "firstUIEventTimestamp": 0,
+          "blockingDuration": 31.4,
+          "scripts": [
+            {}
+          ],
+          "__attribution": {
+            "scripts": [
+              {
+                "name": "script",
+                "entryType": "script",
+                "startTime": 40.79999999701977,
+                "duration": 80.20000000298023,
+                "invoker": "http://127.0.0.1:36877/frame.html",
+                "invokerType": "classic-script",
+                "windowAttribution": "descendant",
+                "executionStart": 40.900000005960464,
+                "forcedStyleAndLayoutDuration": 0,
+                "pauseDuration": 0,
+                "sourceURL": "http://127.0.0.1:36877/frame.html",
+                "sourceFunctionName": "",
+                "sourceCharPosition": 0
+              }
+            ]
+          }
+        },
+        {
+          "name": "long-animation-frame",
+          "entryType": "long-animation-frame",
+          "startTime": 527,
+          "duration": 120.225,
+          "renderStart": 0,
+          "styleAndLayoutStart": 0,
+          "firstUIEventTimestamp": 0,
+          "blockingDuration": 70.3,
+          "scripts": [
+            {}
+          ],
+          "__attribution": {
+            "scripts": [
+              {
+                "name": "script",
+                "entryType": "script",
+                "startTime": 527,
+                "duration": 120.20000000298023,
+                "invoker": "TimerHandler:setTimeout",
+                "invokerType": "user-callback",
+                "windowAttribution": "self",
+                "executionStart": 527,
+                "forcedStyleAndLayoutDuration": 0,
+                "pauseDuration": 0,
+                "sourceURL": "http://127.0.0.1:36877/",
+                "sourceFunctionName": "",
+                "sourceCharPosition": 626
+              }
+            ]
+          }
+        },
+        {
+          "name": "long-animation-frame",
+          "entryType": "long-animation-frame",
+          "startTime": 1743.5999999940395,
+          "duration": 71.30000001192093,
+          "paintTime": 1814.9000000059605,
+          "presentationTime": 1820,
+          "renderStart": 1814.9000000059605,
+          "styleAndLayoutStart": 1814.9000000059605,
+          "firstUIEventTimestamp": 1743.7000000029802,
+          "blockingDuration": 21.1,
+          "scripts": [
+            {}
+          ],
+          "__attribution": {
+            "scripts": [
+              {
+                "name": "script",
+                "entryType": "script",
+                "startTime": 1744.2999999970198,
+                "duration": 70.1000000089407,
+                "invoker": "BUTTON#go.onclick",
+                "invokerType": "event-listener",
+                "windowAttribution": "self",
+                "executionStart": 1744.2999999970198,
+                "forcedStyleAndLayoutDuration": 0,
+                "pauseDuration": 0,
+                "sourceURL": "http://127.0.0.1:36877/",
+                "sourceFunctionName": "",
+                "sourceCharPosition": 1428
+              }
+            ]
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "element": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "text-paint",
+          "entryType": "element",
+          "startTime": 44,
+          "duration": 0,
+          "paintTime": 37.099999994039536,
+          "presentationTime": 44,
+          "renderTime": 44,
+          "loadTime": 0,
+          "intersectionRect": {},
+          "identifier": "headline",
+          "naturalWidth": 0,
+          "naturalHeight": 0,
+          "id": "headline",
+          "url": "",
+          "__attribution": {
+            "element": "h1#headline",
+            "identifier": "headline",
+            "url": null,
+            "elementAttrs": {
+              "tag": "h1",
+              "id": "headline",
+              "classes": [
+                "title",
+                "hero-copy"
+              ]
+            },
+            "intersectionRect": {
+              "x": 24,
+              "y": 26,
+              "width": 327,
+              "height": 43,
+              "top": 26,
+              "right": 351,
+              "bottom": 69,
+              "left": 24
+            }
+          }
+        },
+        {
+          "name": "text-paint",
+          "entryType": "element",
+          "startTime": 44,
+          "duration": 0,
+          "paintTime": 37.099999994039536,
+          "presentationTime": 44,
+          "renderTime": 44,
+          "loadTime": 0,
+          "intersectionRect": {},
+          "identifier": "intro-copy",
+          "naturalWidth": 0,
+          "naturalHeight": 0,
+          "id": "intro",
+          "url": "",
+          "__attribution": {
+            "element": "p#intro",
+            "identifier": "intro-copy",
+            "url": null,
+            "elementAttrs": {
+              "tag": "p",
+              "id": "intro",
+              "classes": [
+                "copy",
+                "lead"
+              ]
+            },
+            "intersectionRect": {
+              "x": 24,
+              "y": 141,
+              "width": 720,
+              "height": 71,
+              "top": 141,
+              "right": 744,
+              "bottom": 212,
+              "left": 24
+            }
+          }
+        },
+        {
+          "name": "image-paint",
+          "entryType": "element",
+          "startTime": 132,
+          "duration": 0,
+          "paintTime": 126,
+          "presentationTime": 132,
+          "renderTime": 132,
+          "loadTime": 124.59999999403954,
+          "intersectionRect": {},
+          "identifier": "hero-image",
+          "naturalWidth": 600,
+          "naturalHeight": 300,
+          "id": "hero",
+          "url": "http://127.0.0.1:36877/hero.svg",
+          "__attribution": {
+            "element": "img#hero",
+            "identifier": "hero-image",
+            "url": "http://127.0.0.1:36877/hero.svg",
+            "elementAttrs": {
+              "tag": "img",
+              "id": "hero",
+              "classes": [
+                "hero-img",
+                "primary"
+              ]
+            },
+            "intersectionRect": {
+              "x": 24,
+              "y": 229,
+              "width": 600,
+              "height": 300,
+              "top": 229,
+              "right": 624,
+              "bottom": 529,
+              "left": 24
+            }
+          }
+        },
+        {
+          "name": "image-paint",
+          "entryType": "element",
+          "startTime": 132,
+          "duration": 0,
+          "paintTime": 126,
+          "presentationTime": 132,
+          "renderTime": 132,
+          "loadTime": 122.59999999403954,
+          "intersectionRect": {},
+          "identifier": "thumb-image",
+          "naturalWidth": 96,
+          "naturalHeight": 96,
+          "id": "thumb",
+          "url": "http://127.0.0.1:36877/thumb.svg",
+          "__attribution": {
+            "element": "img#thumb",
+            "identifier": "thumb-image",
+            "url": "http://127.0.0.1:36877/thumb.svg",
+            "elementAttrs": {
+              "tag": "img",
+              "id": "thumb",
+              "classes": [
+                "thumb"
+              ]
+            },
+            "intersectionRect": {
+              "x": 24,
+              "y": 541,
+              "width": 96,
+              "height": 96,
+              "top": 541,
+              "right": 120,
+              "bottom": 637,
+              "left": 24
+            }
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "mark": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "fixture:boot",
+          "entryType": "mark",
+          "startTime": 26.799999997019768,
+          "duration": 0,
+          "__attribution": {
+            "detail": {
+              "phase": "boot",
+              "flags": [
+                "a",
+                "b"
+              ],
+              "attempt": 1
+            }
+          }
+        },
+        {
+          "name": "fixture:plain",
+          "entryType": "mark",
+          "startTime": 26.799999997019768,
+          "duration": 0
+        }
+      ],
+      "dropped": 0
+    },
+    "measure": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "fixture:hydrate",
+          "entryType": "measure",
+          "startTime": 0,
+          "duration": 647.0999999940395,
+          "__attribution": {
+            "detail": {
+              "step": "hydrate",
+              "budgetMs": 200
+            }
+          }
+        },
+        {
+          "name": "⚛ OrderForm render",
+          "entryType": "measure",
+          "startTime": 1744.2999999970198,
+          "duration": 70,
+          "__attribution": {
+            "detail": {
+              "devtools": {
+                "dataType": "track-entry",
+                "track": "Components ⚛",
+                "trackGroup": "React",
+                "color": "primary"
+              }
+            }
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "visibility-state": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "visible",
+          "entryType": "visibility-state",
+          "startTime": 0,
+          "duration": 0
+        }
+      ],
+      "dropped": 0
+    }
+  },
+  "profile": {
+    "status": "present",
+    "requestedSampleIntervalMs": 2,
+    "actualSampleIntervalMs": 10,
+    "maxBufferSize": 30000,
+    "sampleBufferFull": false,
+    "resources": [
+      "http://127.0.0.1:36877/"
+    ],
+    "frames": [
+      {
+        "column": 16,
+        "line": 59,
+        "name": "spin",
+        "resourceId": 0
+      },
+      {
+        "column": 14,
+        "line": 62,
+        "name": "",
+        "resourceId": 0
+      },
+      {
+        "column": 59,
+        "line": 78,
+        "name": "",
+        "resourceId": 0
+      },
+      {
+        "column": 70,
+        "line": 94,
+        "name": "",
+        "resourceId": 0
+      }
+    ],
+    "stacks": [
+      {
+        "frameId": 1
+      },
+      {
+        "frameId": 0,
+        "parentId": 0
+      },
+      {
+        "frameId": 2
+      },
+      {
+        "frameId": 0,
+        "parentId": 2
+      },
+      {
+        "frameId": 3
+      },
+      {
+        "frameId": 0,
+        "parentId": 4
+      }
+    ],
+    "samples": [
+      {
+        "timestamp": 24.58499999344349
+      },
+      {
+        "timestamp": 34.76500000059605
+      },
+      {
+        "timestamp": 42.375
+      },
+      {
+        "timestamp": 44.83499999344349
+      },
+      {
+        "timestamp": 54.90500000119209
+      },
+      {
+        "timestamp": 64.97499999403954
+      },
+      {
+        "timestamp": 75.04500000178814
+      },
+      {
+        "timestamp": 85.11999998986721
+      },
+      {
+        "timestamp": 95.20000000298023
+      },
+      {
+        "timestamp": 105.31000000238419
+      },
+      {
+        "timestamp": 115.39000000059605
+      },
+      {
+        "timestamp": 125.47999998927116
+      },
+      {
+        "timestamp": 135.7099999934435
+      },
+      {
+        "timestamp": 145.78499999642372
+      },
+      {
+        "timestamp": 155.9399999976158
+      },
+      {
+        "timestamp": 166.1199999898672
+      },
+      {
+        "timestamp": 176.20499999821186
+      },
+      {
+        "timestamp": 186.31999999284744
+      },
+      {
+        "timestamp": 196.375
+      },
+      {
+        "timestamp": 206.57999999821186
+      },
+      {
+        "timestamp": 216.625
+      },
+      {
+        "timestamp": 226.75
+      },
+      {
+        "timestamp": 236.85499998927116
+      },
+      {
+        "timestamp": 246.92000000178814
+      },
+      {
+        "timestamp": 257.07500000298023
+      },
+      {
+        "timestamp": 267.20000000298023
+      },
+      {
+        "timestamp": 277.2699999958277
+      },
+      {
+        "timestamp": 287.34999999403954
+      },
+      {
+        "timestamp": 297.5
+      },
+      {
+        "timestamp": 307.5849999934435
+      },
+      {
+        "timestamp": 317.75
+      },
+      {
+        "timestamp": 327.91499999165535
+      },
+      {
+        "timestamp": 338.07999999821186
+      },
+      {
+        "timestamp": 348.1199999898672
+      },
+      {
+        "timestamp": 358.35499998927116
+      },
+      {
+        "timestamp": 368.5
+      },
+      {
+        "timestamp": 378.6149999946356
+      },
+      {
+        "timestamp": 388.70000000298023
+      },
+      {
+        "timestamp": 398.7800000011921
+      },
+      {
+        "timestamp": 408.85999999940395
+      },
+      {
+        "timestamp": 418.94499999284744
+      },
+      {
+        "timestamp": 429.0049999952316
+      },
+      {
+        "timestamp": 439.07500000298023
+      },
+      {
+        "timestamp": 449.2099999934435
+      },
+      {
+        "timestamp": 459.34999999403954
+      },
+      {
+        "timestamp": 469.4649999886751
+      },
+      {
+        "timestamp": 479.54999999701977
+      },
+      {
+        "timestamp": 489.6199999898672
+      },
+      {
+        "timestamp": 499.7199999988079
+      },
+      {
+        "timestamp": 509.79500000178814
+      },
+      {
+        "timestamp": 519.890000000596
+      },
+      {
+        "stackId": 1,
+        "timestamp": 528.1700000017881
+      },
+      {
+        "stackId": 1,
+        "timestamp": 529.9549999982119
+      },
+      {
+        "stackId": 1,
+        "timestamp": 540.0300000011921
+      },
+      {
+        "stackId": 1,
+        "timestamp": 550.0999999940395
+      },
+      {
+        "stackId": 1,
+        "timestamp": 560.1749999970198
+      },
+      {
+        "stackId": 1,
+        "timestamp": 570.2549999952316
+      },
+      {
+        "stackId": 1,
+        "timestamp": 580.3250000029802
+      },
+      {
+        "stackId": 1,
+        "timestamp": 590.4299999922514
+      },
+      {
+        "stackId": 1,
+        "timestamp": 600.515000000596
+      },
+      {
+        "stackId": 1,
+        "timestamp": 610.5849999934435
+      },
+      {
+        "stackId": 1,
+        "timestamp": 620.6550000011921
+      },
+      {
+        "stackId": 1,
+        "timestamp": 630.7199999988079
+      },
+      {
+        "stackId": 1,
+        "timestamp": 640.8049999922514
+      },
+      {
+        "timestamp": 650.9249999970198
+      },
+      {
+        "timestamp": 661.0499999970198
+      },
+      {
+        "timestamp": 671.3250000029802
+      },
+      {
+        "timestamp": 681.4549999982119
+      },
+      {
+        "timestamp": 691.6449999958277
+      },
+      {
+        "timestamp": 701.7449999898672
+      },
+      {
+        "timestamp": 711.8049999922514
+      },
+      {
+        "timestamp": 721.9299999922514
+      },
+      {
+        "timestamp": 731.9749999940395
+      },
+      {
+        "timestamp": 742.0450000017881
+      },
+      {
+        "timestamp": 752.1299999952316
+      },
+      {
+        "timestamp": 762.2549999952316
+      },
+      {
+        "timestamp": 772.3250000029802
+      },
+      {
+        "timestamp": 782.4099999964237
+      },
+      {
+        "timestamp": 792.484999999404
+      },
+      {
+        "timestamp": 802.5750000029802
+      },
+      {
+        "timestamp": 812.6499999910593
+      },
+      {
+        "timestamp": 822.7699999958277
+      },
+      {
+        "timestamp": 832.8549999892712
+      },
+      {
+        "timestamp": 843.0099999904633
+      },
+      {
+        "timestamp": 853.2199999988079
+      },
+      {
+        "timestamp": 863.3100000023842
+      },
+      {
+        "timestamp": 873.3999999910593
+      },
+      {
+        "timestamp": 883.5
+      },
+      {
+        "timestamp": 893.7099999934435
+      },
+      {
+        "timestamp": 903.875
+      },
+      {
+        "timestamp": 913.9200000017881
+      },
+      {
+        "timestamp": 924.0249999910593
+      },
+      {
+        "timestamp": 934.125
+      },
+      {
+        "timestamp": 944.2299999892712
+      },
+      {
+        "timestamp": 954.3250000029802
+      },
+      {
+        "timestamp": 964.4099999964237
+      },
+      {
+        "timestamp": 974.6349999904633
+      },
+      {
+        "timestamp": 984.7299999892712
+      },
+      {
+        "timestamp": 994.8250000029802
+      },
+      {
+        "timestamp": 1004.9099999964237
+      },
+      {
+        "timestamp": 1015.0049999952316
+      },
+      {
+        "timestamp": 1025.1199999898672
+      },
+      {
+        "timestamp": 1035.234999999404
+      },
+      {
+        "timestamp": 1045.3100000023842
+      },
+      {
+        "timestamp": 1055.3999999910593
+      },
+      {
+        "timestamp": 1065.5399999916553
+      },
+      {
+        "timestamp": 1075.6299999952316
+      },
+      {
+        "timestamp": 1085.7449999898672
+      },
+      {
+        "timestamp": 1095.8499999940395
+      },
+      {
+        "timestamp": 1105.9649999886751
+      },
+      {
+        "timestamp": 1116.0750000029802
+      },
+      {
+        "timestamp": 1126.1700000017881
+      },
+      {
+        "timestamp": 1136.2899999916553
+      },
+      {
+        "timestamp": 1146.3250000029802
+      },
+      {
+        "timestamp": 1156.4099999964237
+      },
+      {
+        "timestamp": 1166.4899999946356
+      },
+      {
+        "timestamp": 1176.5999999940395
+      },
+      {
+        "timestamp": 1186.6899999976158
+      },
+      {
+        "timestamp": 1196.7899999916553
+      },
+      {
+        "timestamp": 1206.8999999910593
+      },
+      {
+        "timestamp": 1216.9799999892712
+      },
+      {
+        "timestamp": 1227.0649999976158
+      },
+      {
+        "timestamp": 1237.1499999910593
+      },
+      {
+        "timestamp": 1247.3499999940395
+      },
+      {
+        "timestamp": 1257.4649999886751
+      },
+      {
+        "timestamp": 1267.530000001192
+      },
+      {
+        "timestamp": 1277.6499999910593
+      },
+      {
+        "timestamp": 1287.7599999904633
+      },
+      {
+        "timestamp": 1297.8499999940395
+      },
+      {
+        "timestamp": 1307.9749999940395
+      },
+      {
+        "timestamp": 1318.0199999958277
+      },
+      {
+        "timestamp": 1328.1049999892712
+      },
+      {
+        "timestamp": 1338.2099999934435
+      },
+      {
+        "timestamp": 1348.3399999886751
+      },
+      {
+        "timestamp": 1358.3849999904633
+      },
+      {
+        "timestamp": 1368.5049999952316
+      },
+      {
+        "timestamp": 1378.5699999928474
+      },
+      {
+        "timestamp": 1388.7049999982119
+      },
+      {
+        "timestamp": 1398.8149999976158
+      },
+      {
+        "timestamp": 1408.9399999976158
+      },
+      {
+        "timestamp": 1419.030000001192
+      },
+      {
+        "timestamp": 1429.1199999898672
+      },
+      {
+        "timestamp": 1439.2000000029802
+      },
+      {
+        "timestamp": 1449.3100000023842
+      },
+      {
+        "timestamp": 1459.469999998808
+      },
+      {
+        "timestamp": 1469.515000000596
+      },
+      {
+        "timestamp": 1479.6349999904633
+      },
+      {
+        "timestamp": 1489.7249999940395
+      },
+      {
+        "timestamp": 1499.8049999922514
+      },
+      {
+        "timestamp": 1509.890000000596
+      },
+      {
+        "timestamp": 1519.9749999940395
+      },
+      {
+        "timestamp": 1530.0750000029802
+      },
+      {
+        "timestamp": 1540.1599999964237
+      },
+      {
+        "timestamp": 1550.2299999892712
+      },
+      {
+        "timestamp": 1560.3100000023842
+      },
+      {
+        "timestamp": 1570.405000001192
+      },
+      {
+        "timestamp": 1580.530000001192
+      },
+      {
+        "timestamp": 1590.7099999934435
+      },
+      {
+        "timestamp": 1600.9599999934435
+      },
+      {
+        "timestamp": 1611.1049999892712
+      },
+      {
+        "timestamp": 1621.1649999916553
+      },
+      {
+        "timestamp": 1631.2549999952316
+      },
+      {
+        "timestamp": 1641.3100000023842
+      },
+      {
+        "timestamp": 1651.4249999970198
+      },
+      {
+        "timestamp": 1661.5349999964237
+      },
+      {
+        "timestamp": 1671.594999998808
+      },
+      {
+        "timestamp": 1681.6799999922514
+      },
+      {
+        "timestamp": 1691.765000000596
+      },
+      {
+        "timestamp": 1701.844999998808
+      },
+      {
+        "timestamp": 1711.9500000029802
+      },
+      {
+        "timestamp": 1722.0399999916553
+      },
+      {
+        "timestamp": 1732.109999999404
+      },
+      {
+        "timestamp": 1742.1899999976158
+      },
+      {
+        "stackId": 3,
+        "timestamp": 1752.2599999904633
+      },
+      {
+        "stackId": 3,
+        "timestamp": 1762.3499999940395
+      },
+      {
+        "stackId": 3,
+        "timestamp": 1772.4899999946356
+      },
+      {
+        "stackId": 3,
+        "timestamp": 1782.5899999886751
+      },
+      {
+        "stackId": 3,
+        "timestamp": 1792.7449999898672
+      },
+      {
+        "stackId": 3,
+        "timestamp": 1802.9099999964237
+      },
+      {
+        "stackId": 3,
+        "timestamp": 1812.9799999892712
+      },
+      {
+        "stackId": 5,
+        "timestamp": 1823.0699999928474
+      },
+      {
+        "stackId": 5,
+        "timestamp": 1833.1499999910593
+      },
+      {
+        "stackId": 5,
+        "timestamp": 1843.219999998808
+      },
+      {
+        "timestamp": 1853.3149999976158
+      },
+      {
+        "timestamp": 1863.405000001192
+      },
+      {
+        "timestamp": 1873.5049999952316
+      },
+      {
+        "stackId": 5,
+        "timestamp": 1883.5899999886751
+      },
+      {
+        "stackId": 5,
+        "timestamp": 1893.6700000017881
+      },
+      {
+        "timestamp": 1903.7449999898672
+      },
+      {
+        "timestamp": 1913.8399999886751
+      },
+      {
+        "timestamp": 1923.9549999982119
+      },
+      {
+        "timestamp": 1934.0649999976158
+      },
+      {
+        "stackId": 5,
+        "timestamp": 1944.1299999952316
+      },
+      {
+        "stackId": 5,
+        "timestamp": 1954.2149999886751
+      },
+      {
+        "timestamp": 1964.2999999970198
+      },
+      {
+        "timestamp": 1974.4549999982119
+      },
+      {
+        "timestamp": 1984.5799999982119
+      },
+      {
+        "stackId": 5,
+        "timestamp": 1994.640000000596
+      },
+      {
+        "stackId": 5,
+        "timestamp": 2004.7449999898672
+      },
+      {
+        "stackId": 5,
+        "timestamp": 2014.859999999404
+      },
+      {
+        "timestamp": 2024.9899999946356
+      },
+      {
+        "timestamp": 2035.030000001192
+      },
+      {
+        "timestamp": 2045.1149999946356
+      },
+      {
+        "stackId": 5,
+        "timestamp": 2055.1799999922514
+      },
+      {
+        "stackId": 5,
+        "timestamp": 2065.2699999958277
+      },
+      {
+        "timestamp": 2075.359999999404
+      },
+      {
+        "timestamp": 2085.479999989271
+      },
+      {
+        "timestamp": 2095.6299999952316
+      },
+      {
+        "timestamp": 2105.7399999946356
+      },
+      {
+        "timestamp": 2115.8250000029802
+      },
+      {
+        "timestamp": 2125.939999997616
+      },
+      {
+        "timestamp": 2136.015000000596
+      },
+      {
+        "timestamp": 2146.170000001788
+      },
+      {
+        "timestamp": 2156.2999999970198
+      },
+      {
+        "timestamp": 2166.5
+      },
+      {
+        "timestamp": 2176.589999988675
+      },
+      {
+        "timestamp": 2186.814999997616
+      },
+      {
+        "timestamp": 2196.829999998212
+      },
+      {
+        "timestamp": 2206.9099999964237
+      },
+      {
+        "timestamp": 2216.984999999404
+      },
+      {
+        "timestamp": 2227.0999999940395
+      },
+      {
+        "timestamp": 2237.2000000029802
+      },
+      {
+        "timestamp": 2247.3349999934435
+      },
+      {
+        "timestamp": 2257.4299999922514
+      },
+      {
+        "timestamp": 2267.515000000596
+      },
+      {
+        "timestamp": 2277.685000002384
+      },
+      {
+        "timestamp": 2287.795000001788
+      },
+      {
+        "timestamp": 2297.935000002384
+      },
+      {
+        "timestamp": 2308.064999997616
+      },
+      {
+        "timestamp": 2318.109999999404
+      },
+      {
+        "timestamp": 2328.204999998212
+      },
+      {
+        "timestamp": 2338.2749999910593
+      },
+      {
+        "timestamp": 2348.375
+      },
+      {
+        "timestamp": 2358.5
+      },
+      {
+        "timestamp": 2368.5999999940395
+      },
+      {
+        "timestamp": 2378.6799999922514
+      },
+      {
+        "timestamp": 2388.8250000029802
+      },
+      {
+        "timestamp": 2398.844999998808
+      },
+      {
+        "timestamp": 2408.9249999970198
+      },
+      {
+        "timestamp": 2419.0049999952316
+      },
+      {
+        "timestamp": 2429.079999998212
+      },
+      {
+        "timestamp": 2439.214999988675
+      },
+      {
+        "timestamp": 2449.310000002384
+      },
+      {
+        "timestamp": 2459.375
+      },
+      {
+        "timestamp": 2469.5049999952316
+      },
+      {
+        "timestamp": 2479.5999999940395
+      },
+      {
+        "timestamp": 2489.689999997616
+      },
+      {
+        "timestamp": 2499.765000000596
+      },
+      {
+        "timestamp": 2509.844999998808
+      },
+      {
+        "timestamp": 2519.920000001788
+      },
+      {
+        "timestamp": 2530.0249999910593
+      },
+      {
+        "timestamp": 2540.104999989271
+      },
+      {
+        "timestamp": 2550.185000002384
+      },
+      {
+        "timestamp": 2560.2599999904633
+      },
+      {
+        "timestamp": 2570.3499999940395
+      },
+      {
+        "timestamp": 2580.420000001788
+      },
+      {
+        "timestamp": 2590.604999989271
+      },
+      {
+        "timestamp": 2600.7599999904633
+      },
+      {
+        "timestamp": 2610.8049999922514
+      },
+      {
+        "timestamp": 2620.905000001192
+      },
+      {
+        "timestamp": 2630.984999999404
+      },
+      {
+        "timestamp": 2641.1149999946356
+      },
+      {
+        "timestamp": 2651.1799999922514
+      },
+      {
+        "timestamp": 2661.3049999922514
+      },
+      {
+        "timestamp": 2671.3649999946356
+      },
+      {
+        "timestamp": 2681.479999989271
+      },
+      {
+        "timestamp": 2691.655000001192
+      },
+      {
+        "timestamp": 2701.7599999904633
+      },
+      {
+        "timestamp": 2711.9449999928474
+      },
+      {
+        "timestamp": 2722.1299999952316
+      },
+      {
+        "timestamp": 2732.2099999934435
+      },
+      {
+        "timestamp": 2742.3649999946356
+      },
+      {
+        "timestamp": 2752.5399999916553
+      },
+      {
+        "timestamp": 2762.7249999940395
+      },
+      {
+        "timestamp": 2772.765000000596
+      },
+      {
+        "timestamp": 2782.9149999916553
+      },
+      {
+        "timestamp": 2793.0750000029802
+      },
+      {
+        "timestamp": 2803.2399999946356
+      },
+      {
+        "timestamp": 2813.4749999940395
+      },
+      {
+        "timestamp": 2823.729999989271
+      },
+      {
+        "timestamp": 2833.8049999922514
+      },
+      {
+        "timestamp": 2843.890000000596
+      },
+      {
+        "timestamp": 2854.0399999916553
+      },
+      {
+        "timestamp": 2864.1349999904633
+      },
+      {
+        "timestamp": 2874.344999998808
+      },
+      {
+        "timestamp": 2884.420000001788
+      },
+      {
+        "timestamp": 2894.5349999964237
+      },
+      {
+        "timestamp": 2904.619999989867
+      },
+      {
+        "timestamp": 2914.719999998808
+      },
+      {
+        "timestamp": 2924.814999997616
+      },
+      {
+        "timestamp": 2934.905000001192
+      },
+      {
+        "timestamp": 2945.0099999904633
+      },
+      {
+        "timestamp": 2955.125
+      },
+      {
+        "timestamp": 2965.2249999940395
+      },
+      {
+        "timestamp": 2975.3849999904633
+      },
+      {
+        "timestamp": 2985.5099999904633
+      },
+      {
+        "timestamp": 2995.589999988675
+      },
+      {
+        "timestamp": 3005.6799999922514
+      },
+      {
+        "timestamp": 3015.829999998212
+      },
+      {
+        "timestamp": 3025.994999989867
+      },
+      {
+        "timestamp": 3036.0999999940395
+      },
+      {
+        "timestamp": 3046.185000002384
+      },
+      {
+        "timestamp": 3056.229999989271
+      },
+      {
+        "timestamp": 3066.3949999958277
+      },
+      {
+        "timestamp": 3076.5349999964237
+      },
+      {
+        "timestamp": 3086.589999988675
+      },
+      {
+        "timestamp": 3096.714999988675
+      },
+      {
+        "timestamp": 3106.839999988675
+      },
+      {
+        "timestamp": 3116.935000002384
+      },
+      {
+        "timestamp": 3127.0199999958277
+      },
+      {
+        "timestamp": 3137.125
+      },
+      {
+        "timestamp": 3147.2249999940395
+      },
+      {
+        "timestamp": 3157.329999998212
+      },
+      {
+        "timestamp": 3167.494999989867
+      },
+      {
+        "timestamp": 3177.579999998212
+      },
+      {
+        "timestamp": 3187.6649999916553
+      },
+      {
+        "timestamp": 3197.8049999922514
+      },
+      {
+        "timestamp": 3207.8999999910593
+      },
+      {
+        "timestamp": 3217.9899999946356
+      },
+      {
+        "timestamp": 3228.104999989271
+      },
+      {
+        "timestamp": 3238.3049999922514
+      },
+      {
+        "timestamp": 3248.3949999958277
+      },
+      {
+        "timestamp": 3258.4899999946356
+      },
+      {
+        "timestamp": 3268.6349999904633
+      },
+      {
+        "timestamp": 3278.765000000596
+      },
+      {
+        "timestamp": 3288.8849999904633
+      },
+      {
+        "timestamp": 3299.0249999910593
+      },
+      {
+        "timestamp": 3309.1649999916553
+      },
+      {
+        "timestamp": 3319.244999989867
+      },
+      {
+        "timestamp": 3329.3649999946356
+      },
+      {
+        "timestamp": 3339.454999998212
+      },
+      {
+        "timestamp": 3349.560000002384
+      },
+      {
+        "timestamp": 3359.6949999928474
+      },
+      {
+        "timestamp": 3369.744999989867
+      },
+      {
+        "timestamp": 3379.844999998808
+      },
+      {
+        "timestamp": 3389.954999998212
+      },
+      {
+        "timestamp": 3400.045000001788
+      },
+      {
+        "timestamp": 3410.1799999922514
+      },
+      {
+        "timestamp": 3420.390000000596
+      },
+      {
+        "timestamp": 3430.464999988675
+      },
+      {
+        "timestamp": 3440.604999989271
+      },
+      {
+        "timestamp": 3450.814999997616
+      },
+      {
+        "timestamp": 3460.9749999940395
+      },
+      {
+        "timestamp": 3471.089999988675
+      }
+    ],
+    "counts": {
+      "resources": 1,
+      "frames": 4,
+      "stacks": 6,
+      "samples": 344
+    }
+  }
+}

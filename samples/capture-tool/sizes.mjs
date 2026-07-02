@@ -20,17 +20,36 @@ import { Encoder, entrySink, asRelMs, asEpochMs } from '../../dist/index.js';
 
 const jsonDir = new URL('../json/', import.meta.url);
 
-// Reconstruct the live view of a raw entry: LoAF `scripts` serialize as {} through toJSON and the
-// node-valued attributions (LCP element, shift sources, interaction target) were pre-resolved by the
-// spike to structural selector strings under __attribution — graft them back before normalizing.
+// Reconstruct the live view of a raw entry: the parts an entry-level toJSON drops or empties (LoAF
+// scripts, serverTiming, longtask attribution, notRestoredReasons, the element-timing
+// intersectionRect, mark/measure detail) plus the node-valued attributions the spike pre-resolved to
+// selector strings + structured attrs — graft them back before normalizing.
+// This mirrors test/browser.test.ts (`liveView`); keep the two in step.
 function liveView(type, entry) {
   const attr = entry.__attribution;
   if (attr === undefined) return entry;
   const out = { ...entry };
-  if (type === 'largest-contentful-paint' && attr.element !== undefined) out.element = attr.element;
-  if (type === 'layout-shift' && Array.isArray(attr.sources)) out.sources = attr.sources;
-  if ((type === 'event' || type === 'first-input') && attr.target !== undefined) out.target = attr.target;
+  const ref = (selector, attrs) =>
+    typeof selector === 'string' || (attrs !== null && typeof attrs === 'object')
+      ? { ...(typeof selector === 'string' ? { selector } : {}), ...(attrs ?? {}) }
+      : undefined;
+  if (type === 'largest-contentful-paint' || type === 'element') {
+    const element = ref(attr.element, attr.elementAttrs);
+    if (element !== undefined) out.element = element;
+    if (type === 'element' && attr.intersectionRect !== undefined) out.intersectionRect = attr.intersectionRect;
+  }
+  if (type === 'layout-shift' && Array.isArray(attr.sources)) {
+    out.sources = attr.sources.map((s) => ({ node: ref(s.node, s.attrs), previousRect: s.previousRect, currentRect: s.currentRect }));
+  }
+  if (type === 'event' || type === 'first-input') {
+    const target = ref(attr.target, attr.targetAttrs);
+    if (target !== undefined) out.target = target;
+  }
   if (type === 'long-animation-frame' && Array.isArray(attr.scripts)) out.scripts = attr.scripts;
+  if (type === 'longtask' && Array.isArray(attr.attribution)) out.attribution = attr.attribution;
+  if ((type === 'navigation' || type === 'resource') && Array.isArray(attr.serverTiming)) out.serverTiming = attr.serverTiming;
+  if (type === 'navigation' && attr.notRestoredReasons !== undefined) out.notRestoredReasons = attr.notRestoredReasons;
+  if ((type === 'mark' || type === 'measure') && attr.detail !== undefined) out.detail = attr.detail;
   return out;
 }
 

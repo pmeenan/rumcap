@@ -1,0 +1,15 @@
+<!doctype html>
+<!-- Same-origin iframe that blocks its main thread, so the PARENT page's longtask observer records
+     entries attributed to a descendant context (entry name 'same-origin-descendant' + a
+     TaskAttributionTiming with containerType/containerSrc/containerId/containerName). -->
+<html lang="en">
+<head><meta charset="utf-8"><title>task frame</title></head>
+<body>
+  <p style="font: 12px system-ui; margin: 4px;">iframe that blocks its main thread</p>
+<script>
+  const spin = (ms) => { const end = performance.now() + ms; while (performance.now() < end); };
+  spin(80);                       // block during parse
+  setTimeout(() => spin(100), 300); // and again after load
+</script>
+</body>
+</html>

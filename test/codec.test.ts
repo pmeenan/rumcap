@@ -170,9 +170,9 @@ describe('capture metadata + custom events (FORMAT_VERSION 2)', () => {
     expect(empty.events).toEqual([]);
   });
 
-  it('writes formatVersion 2 into the header', async () => {
+  it('writes formatVersion 3 into the header', async () => {
     const bytes = await pack(customAndMeta);
-    expect(bytes[5]).toBe(2);
+    expect(bytes[5]).toBe(3);
     expect(customAndMeta.formatVersion).toBe(FORMAT_VERSION);
   });
 });
@@ -316,15 +316,20 @@ void _typecheck;
 
 // ── Byte-goldens (codec v3) ─────────────────────────────────────────────────────────────────────────
 // Regenerate on an INTENTIONAL wire change: gunzip pack(fixture).subarray(6) — see bodyOf above.
+// (Framing changes additionally bump CODEC_VERSION; per-stream payload-layout changes bump the
+// affected stream schemaVersions + FORMAT_VERSION — both kinds move these bytes. FileFormat.md either way.)
 // minimalEmpty, annotated: [tickScale=1][string table: 3 strings 'ms'/'timeOrigin'/'not-requested']
-// [manifest: clock f64+chained rels+strs+presence, 15 self-describing records, config][no streams].
+// [manifest: clock f64+chained rels+strs+presence, 15 self-describing records — schemaVersion 2 for
+// streams 3/4/5/6/8 (lcp/cls/interactions/longTasks/elementTiming, format v3), 1 elsewhere — config]
+// [no streams].
 const MINIMAL_EMPTY_BODY: number[] = [
   1, 1, 29, 3, 2, 109, 115, 10, 116, 105, 109, 101, 79, 114, 105, 103, 105, 110, 13, 110, 111, 116,
   45, 114, 101, 113, 117, 101, 115, 116, 101, 100, 2, 91, 154, 33, 9, 223, 4, 241, 121, 66, 0, 0, 0,
-  1, 0, 15, 0, 2, 1, 1, 0, 1, 2, 1, 1, 0, 2, 2, 1, 1, 0, 3, 2, 1, 1, 0, 4, 2, 1, 1, 0, 5, 2, 1, 1,
-  0, 6, 2, 1, 1, 0, 7, 2, 1, 1, 0, 8, 2, 1, 1, 0, 9, 2, 1, 1, 0, 10, 2, 1, 1, 0, 11, 2, 1, 1, 0, 12,
+  1, 0, 15, 0, 2, 1, 1, 0, 1, 2, 1, 1, 0, 2, 2, 1, 1, 0, 3, 2, 2, 1, 0, 4, 2, 2, 1, 0, 5, 2, 2, 1,
+  0, 6, 2, 2, 1, 0, 7, 2, 1, 1, 0, 8, 2, 2, 1, 0, 9, 2, 1, 1, 0, 10, 2, 1, 1, 0, 11, 2, 1, 1, 0, 12,
   2, 1, 1, 0, 13, 2, 1, 1, 0, 14, 2, 1, 1, 0, 1, 0,
 ];
-// wireStressV3 exercises columnar arrays (transposed presence), every rect path, negative chain
-// deltas, and >2^32 varuints — 1192 body bytes, pinned by hash to keep this file readable.
-const WIRE_STRESS_BODY_SHA256 = '11c6f68d6f32bc1182b3f84f0f1ec805876ea3a1de9168b5fa34288ce5b81621';
+// wireStressV3 exercises columnar arrays (transposed presence), every rect path (incl. RECTT inside
+// an element-timing column), negative chain deltas, and >2^32 varuints — 1599 body bytes, pinned by
+// hash to keep this file readable.
+const WIRE_STRESS_BODY_SHA256 = '149a51a63fb2a567c7c0308f0049b2b40ecd792ec06bac585865a637d4d7e8bd';

@@ -201,6 +201,9 @@ const richChrome: Capture = {
         element: {
           selector:
             'div.flex-1 > div.grid.grid-cols-1 > div.relative:nth-of-type(2) > div.shadow-base:nth-of-type(1) > img.object-cover.object-top',
+          // structured attrs (ElementRef v2) — shape grounded in the chrome-local-fixture capture
+          tag: 'img',
+          classes: ['object-cover', 'object-top'],
         },
       },
       candidates: [
@@ -208,7 +211,7 @@ const richChrome: Capture = {
           startTime: rel(516),
           size: 1200,
           renderTime: rel(516),
-          element: { selector: 'h1.text-center.text-v0-gray-1000' },
+          element: { selector: 'h1.text-center.text-v0-gray-1000', tag: 'h1', id: 'headline' },
         },
       ],
     },
@@ -222,7 +225,11 @@ const richChrome: Capture = {
           lastInputTime: rel(0),
           sources: [
             {
-              node: { selector: 'div.layout__content-wrapper > section.layout-live-story-amplify__top > div.live-story-lede:nth-of-type(2)' },
+              node: {
+                selector: 'div.layout__content-wrapper > section.layout-live-story-amplify__top > div.live-story-lede:nth-of-type(2)',
+                tag: 'div',
+                classes: ['live-story-lede'],
+              },
               previousRect: { x: 174.5, y: 668.40625, width: 660, height: 99.59375, top: 668.40625, right: 834.5, bottom: 768, left: 174.5 },
               currentRect: { x: 174.5, y: 709.8125, width: 660, height: 58.1875, top: 709.8125, right: 834.5, bottom: 768, left: 174.5 },
             },
@@ -248,7 +255,8 @@ const richChrome: Capture = {
           interactionId: 6451,
           cancelable: true,
           firstInput: true,
-          target: { selector: 'main.z-0.flex > div:nth-of-type(1) > h1.text-center.text-v0-gray-1000' },
+          // a target with the full structured attribute set, incl. the `name` content attribute
+          target: { selector: 'form.checkout > input.field.wide', tag: 'input', id: 'email-field', classes: ['field', 'wide'], name: 'email' },
         },
         {
           name: 'pointerover',
@@ -264,8 +272,14 @@ const richChrome: Capture = {
     },
     longTasks: {
       tasks: [
-        { startTime: rel(753.6), duration: dur(56), attribution: [{}] }, // toJSON drops container detail -> empty
-        { startTime: rel(2100.2), duration: dur(72), attribution: [{ name: 'self', containerType: 'window', containerSrc: 'https://v0.app/' }] },
+        { startTime: rel(753.6), duration: dur(56), name: 'self', attribution: [{}] }, // toJSON drops container detail -> empty
+        {
+          // container values grounded in the chrome-local-fixture iframe task
+          startTime: rel(2100.2),
+          duration: dur(72),
+          name: 'same-origin-descendant',
+          attribution: [{ name: 'unknown', containerType: 'iframe', containerSrc: '/frame.html', containerId: 'taskframe', containerName: 'tasky' }],
+        },
       ],
     },
     loaf: {
@@ -341,10 +355,36 @@ const richChrome: Capture = {
       selfProfiler: 'needs-document-policy',
     },
     errors: { errors: [] }, // present but empty (no errors fired) — distinct from not-collected
-    // Element Timing (opt-in via the `elementtiming` attribute) — synthetic; the corpus pages set none.
+    // Element Timing (opt-in via the `elementtiming` attribute) — field shapes grounded in the
+    // chrome-local-fixture capture: an image-paint with everything, and a text-paint whose url/
+    // loadTime/natural* report the 0/'' sentinels (normalized to absent here).
     elementTiming: {
       elements: [
-        { startTime: rel(516), identifier: 'hero-image', url: 'https://v0.app/hero.png', renderTime: rel(516), loadTime: rel(480.2), naturalWidth: 1280, naturalHeight: 640, element: { selector: 'img.hero' } },
+        {
+          startTime: rel(516),
+          name: 'image-paint',
+          identifier: 'hero-image',
+          id: 'hero',
+          url: 'https://v0.app/hero.png',
+          renderTime: rel(516),
+          loadTime: rel(480.2),
+          paintTime: rel(505.3),
+          presentationTime: rel(516),
+          naturalWidth: 1280,
+          naturalHeight: 640,
+          intersectionRect: { x: 24, y: 141, width: 720, height: 360, top: 141, right: 744, bottom: 501, left: 24 },
+          element: { selector: 'img#hero', tag: 'img', id: 'hero', classes: ['hero-img', 'primary'] },
+        },
+        {
+          startTime: rel(495.1),
+          name: 'text-paint',
+          identifier: 'headline',
+          id: 'headline',
+          renderTime: rel(495.1),
+          paintTime: rel(490.2),
+          presentationTime: rel(495.1),
+          element: { selector: 'h1#headline', tag: 'h1', id: 'headline', classes: ['title', 'hero-copy'] },
+        },
       ],
     },
   },
@@ -700,6 +740,7 @@ const wireStressV3: Capture = {
       userTiming: present('userTiming'),
       visibility: present('visibility'),
       longTasks: present('longTasks'),
+      elementTiming: present('elementTiming'),
     }),
     config: defaultConfig,
   },
@@ -717,11 +758,12 @@ const wireStressV3: Capture = {
       { name: 'https://ex.test/g.mp4', startTime: rel(302), duration: dur(1), initiatorType: 'video', redirectStart: rel(290), redirectEnd: rel(295) },
       { name: 'https://ex.test/a.js', startTime: rel(400), duration: dur(2), initiatorType: 'script' }, // duplicate URL (interning inside a column)
     ],
-    // 9 interactions (columnar), deliberately NOT sorted by startTime, mixed optionals.
+    // 9 interactions (columnar), deliberately NOT sorted by startTime, mixed optionals — targets
+    // range from selector-only to the full structured ref (classes = a string[] inside a column).
     interactions: {
       events: [
-        { name: 'pointerdown', startTime: rel(1000.1), duration: dur(50), processingStart: rel(1001), processingEnd: rel(1002), interactionId: 7, cancelable: true, target: { selector: 'button#buy' } },
-        { name: 'pointerup', startTime: rel(1050), duration: dur(20), interactionId: 7 },
+        { name: 'pointerdown', startTime: rel(1000.1), duration: dur(50), processingStart: rel(1001), processingEnd: rel(1002), interactionId: 7, cancelable: true, target: { selector: 'button#buy', tag: 'button', id: 'buy', classes: ['btn', 'cta'], name: 'buy' } },
+        { name: 'pointerup', startTime: rel(1050), duration: dur(20), interactionId: 7, target: { tag: 'button' } },
         { name: 'click', startTime: rel(1051), duration: dur(19), interactionId: 7, firstInput: true },
         { name: 'keydown', startTime: rel(500), duration: dur(8) }, // out of order
         { name: 'keyup', startTime: rel(560), duration: dur(4), cancelable: false },
@@ -801,17 +843,32 @@ const wireStressV3: Capture = {
         { state: 'visible', startTime: rel(600) },
       ],
     },
-    // 8 long tasks → columnar with a nested struct ARRAY (attribution) inside a column.
+    // 8 long tasks → columnar with a nested struct ARRAY (attribution) inside a column, and the
+    // entry-level `name` ragged (present/absent) across the column.
     longTasks: {
       tasks: [
-        { startTime: rel(100), duration: dur(60), attribution: [{ name: 'script', containerType: 'window' }] },
+        { startTime: rel(100), duration: dur(60), name: 'self', attribution: [{ name: 'script', containerType: 'window' }] },
         { startTime: rel(200), duration: dur(55) },
-        { startTime: rel(300), duration: dur(51), attribution: [] }, // empty-but-present array in a column
-        { startTime: rel(400), duration: dur(120), attribution: [{ containerSrc: 'https://ex.test/frame.html' }, { containerId: 'ad-slot' }] },
-        { startTime: rel(500), duration: dur(50) },
+        { startTime: rel(300), duration: dur(51), name: 'unknown', attribution: [] }, // empty-but-present array in a column
+        { startTime: rel(400), duration: dur(120), name: 'cross-origin-descendant', attribution: [{ containerSrc: 'https://ex.test/frame.html' }, { containerId: 'ad-slot' }] },
+        { startTime: rel(500), duration: dur(50), name: 'multiple-contexts' },
         { startTime: rel(600), duration: dur(75) },
-        { startTime: rel(700), duration: dur(90) },
-        { startTime: rel(800), duration: dur(102) },
+        { startTime: rel(700), duration: dur(90), name: 'same-origin-ancestor' },
+        { startTime: rel(800), duration: dur(102), name: 'self' },
+      ],
+    },
+    // 8 element-timing entries → columnar with a RECT special handler (intersectionRect) and a
+    // nested struct (element ref) RAGGED inside columns — the one place RECTT rides a column.
+    elementTiming: {
+      elements: [
+        { startTime: rel(500), name: 'image-paint', identifier: 'hero', id: 'hero', url: 'https://ex.test/hero.png', renderTime: rel(500), loadTime: rel(480), paintTime: rel(495), presentationTime: rel(500), naturalWidth: 1200, naturalHeight: 600, intersectionRect: { x: 0, y: 60, width: 1200, height: 600, top: 60, right: 1200, bottom: 660, left: 0 }, element: { selector: 'img#hero', tag: 'img', id: 'hero', classes: ['hero'] } },
+        { startTime: rel(510), name: 'text-paint', identifier: 'headline', element: { selector: 'h1.title', tag: 'h1' } },
+        { startTime: rel(520), name: 'image-paint', url: 'https://ex.test/thumb.png', naturalWidth: 96, naturalHeight: 96 },
+        { startTime: rel(530), name: 'text-paint', intersectionRect: { x: 10.5, y: 20.25, width: 300, height: 40, top: 20.25, right: 310.5, bottom: 60.25, left: 10.5 } }, // fractional rect in a column
+        { startTime: rel(540) }, // everything optional absent
+        { startTime: rel(550), name: 'image-paint', id: 'promo', intersectionRect: { x: 0, y: 0, width: 0, height: 0, top: 0, right: 0, bottom: 0, left: 0 } }, // real all-zero rect (off-viewport)
+        { startTime: rel(560), name: 'text-paint', identifier: 'footer-note', id: 'note', element: { tag: 'p', classes: ['note', 'small'] } }, // ref without selector
+        { startTime: rel(570), name: 'image-paint', identifier: 'logo', url: 'https://ex.test/logo.svg', naturalWidth: 48, naturalHeight: 48, element: { selector: 'img.logo' } },
       ],
     },
   },

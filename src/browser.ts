@@ -122,6 +122,7 @@ interface ElementLike {
   classList?: ArrayLike<string>;
   parentElement?: ElementLike | null;
   children?: ArrayLike<ElementLike>;
+  getAttribute?: (name: string) => string | null;
 }
 
 /**
@@ -152,12 +153,47 @@ export function structuralSelector(el: unknown): string | undefined {
   return parts.length > 0 ? parts.join(' > ') : undefined;
 }
 
+/** Class lists are bounded: utility-class-heavy pages (Tailwind etc.) would otherwise bloat a ref. */
+const MAX_REF_CLASSES = 8;
+
+const classList = (v: unknown): string[] | undefined => {
+  const list = Array.isArray(v)
+    ? v.filter((c): c is string => typeof c === 'string' && c !== '').slice(0, MAX_REF_CLASSES)
+    : undefined;
+  return list !== undefined && list.length > 0 ? list : undefined;
+};
+
 const elementRef = (node: unknown): ElementRef | undefined => {
   // A pre-computed selector STRING is accepted as-is: replayed stored entries and consumers with
   // their own selector/redaction policy hold one instead of a live node.
   if (typeof node === 'string') return node !== '' ? { selector: node } : undefined;
-  const selector = structuralSelector(node);
-  return selector !== undefined ? { selector } : undefined;
+  if (node === null || typeof node !== 'object') return undefined;
+  const ref: ElementRef = {};
+  const el = node as ElementLike;
+  if (el.nodeType === 1) {
+    // A live element: the selector path plus its structural attributes. All AUTHORED identity —
+    // tag/id/classes/name attribute — never element text or user-entered values (the PII posture).
+    // getAttribute('name') covers form fields/iframes without per-interface property reads (a
+    // property read of `.name` would hit e.g. HTMLFormElement's unrelated meaning on some types).
+    const selector = structuralSelector(el);
+    if (selector !== undefined) ref.selector = selector;
+    const tag = nes(el.localName);
+    if (tag !== undefined) ref.tag = tag;
+    const id = nes(el.id);
+    if (id !== undefined) ref.id = id;
+    const classes = el.classList !== undefined ? classList(Array.from(el.classList)) : undefined;
+    if (classes !== undefined) ref.classes = classes;
+    const name = typeof el.getAttribute === 'function' ? el.getAttribute('name') : null;
+    if (typeof name === 'string' && name !== '') ref.name = name;
+  } else {
+    // A pre-computed structured ref (a replayed capture or a consumer-side attribution policy) —
+    // same field vocabulary as the model, each read guarded.
+    const r = raw(node);
+    copyStrings(ref, r, ['selector', 'tag', 'id', 'name']);
+    const classes = classList(r.classes);
+    if (classes !== undefined) ref.classes = classes;
+  }
+  return Object.keys(ref).length > 0 ? ref : undefined;
 };
 
 // ── Per-entry normalizers (raw browser shape → model shape) ─────────────────────────────────────────
@@ -270,7 +306,10 @@ export function normalizeNavigation(entry: RawEntry): NavigationTimingEntry {
   if (e.notRestoredReasons === null) nav.notRestoredReasons = null;
   else {
     const reasons = normalizeNotRestoredReasons(e.notRestoredReasons);
-    if (reasons !== undefined) nav.notRestoredReasons = reasons;
+    // Chrome 150's entry-level toJSON serializes even a NULL tree as {} (grounded in the local
+    // fixture; the live getter returns null) — an empty node carries nothing (no strings, not even
+    // the reasons/children arrays a real masked node keeps) and is dropped, like the {} confidence.
+    if (reasons !== undefined && Object.keys(reasons).length > 0) nav.notRestoredReasons = reasons;
   }
   if (e.confidence !== null && typeof e.confidence === 'object') {
     const c = raw(e.confidence);
@@ -310,15 +349,24 @@ function normalizeRect(v: unknown): Rect | undefined {
   // Live DOMRectReadOnly serializes via toJSON(); a replayed capture already holds the plain form.
   const source = raw(v);
   const r = raw(typeof source.toJSON === 'function' ? (source.toJSON as () => object)() : (v as object));
+  const x = num(r.x);
+  const y = num(r.y);
+  const width = num(r.width);
+  const height = num(r.height);
+  // An ENTRY's toJSON() serializes a nested DOMRectReadOnly as `{}` (grounded: element-timing
+  // intersectionRect in the local fixture) — a rect with no stored geometry is ABSENT, never zeros.
+  if (x === undefined || y === undefined || width === undefined || height === undefined) return undefined;
   return {
-    x: num(r.x) ?? 0,
-    y: num(r.y) ?? 0,
-    width: num(r.width) ?? 0,
-    height: num(r.height) ?? 0,
-    top: num(r.top) ?? 0,
-    right: num(r.right) ?? 0,
-    bottom: num(r.bottom) ?? 0,
-    left: num(r.left) ?? 0,
+    x,
+    y,
+    width,
+    height,
+    // A real rect carries all 8; a missing edge falls back to the DOMRectReadOnly definition
+    // (left/top = min side, right/bottom = max) — the same spec derivation the codec applies.
+    top: num(r.top) ?? Math.min(y, y + height),
+    right: num(r.right) ?? Math.max(x, x + width),
+    bottom: num(r.bottom) ?? Math.max(y, y + height),
+    left: num(r.left) ?? Math.min(x, x + width),
   };
 }
 
@@ -362,7 +410,10 @@ export function normalizeInteraction(entry: RawEntry): InteractionEntry {
   if (interactionId !== undefined && interactionId !== 0) it.interactionId = interactionId;
   if (typeof e.cancelable === 'boolean') it.cancelable = e.cancelable;
   if (str(e.entryType) === 'first-input') it.firstInput = true;
-  const target = elementRef(e.target);
+  // Live target first; else the spec's UA-computed `targetSelector` string (Event Timing —
+  // https://w3c.github.io/event-timing/#dom-performanceeventtiming-targetselector; not yet emitted by
+  // the Chrome-149 corpus) lands on the same model slot.
+  const target = elementRef(e.target) ?? (typeof e.targetSelector === 'string' ? elementRef(e.targetSelector) : undefined);
   if (target !== undefined) it.target = target;
   return it;
 }
@@ -371,6 +422,10 @@ export function normalizeInteraction(entry: RawEntry): InteractionEntry {
 export function normalizeLongTask(entry: RawEntry): LongTaskEntry {
   const e = raw(entry);
   const task: LongTaskEntry = { startTime: rel(e.startTime), duration: relDur(e.duration) };
+  // The entry-level name is the container vocabulary ('self' | 'same-origin-*' | 'cross-origin-*' |
+  // 'multiple-contexts' | 'unknown') — kept verbatim; the corpus exhibits 'self'/'unknown'.
+  const name = nes(e.name);
+  if (name !== undefined) task.name = name;
   if (Array.isArray(e.attribution)) {
     task.attribution = e.attribution.map((a): LongTaskAttribution => {
       const out: LongTaskAttribution = {};
@@ -424,13 +479,17 @@ export function normalizeLoaf(entry: RawEntry): LoafEntry {
 export function normalizeElementTiming(entry: RawEntry): ElementTimingEntry {
   const e = raw(entry);
   const el: ElementTimingEntry = { startTime: rel(e.startTime) };
-  copyStrings(el, e, ['identifier', 'url']); // url '' = text element → absent
-  copyPhases(el, e, ['renderTime', 'loadTime']); // same 0-sentinel rule as LCP
+  // name is the paint kind ('image-paint' | 'text-paint'); id '' = "element has no id" → absent
+  // (same rule as LCP); url '' = text element → absent.
+  copyStrings(el, e, ['name', 'identifier', 'id', 'url']);
+  copyPhases(el, e, ['renderTime', 'loadTime', 'paintTime', 'presentationTime']); // same 0-sentinel rule as LCP
   // naturalWidth/Height are 0 for text elements (no intrinsic size) — a sentinel, not a measurement.
   const w = num(e.naturalWidth);
   if (w !== undefined && w > 0) el.naturalWidth = w;
   const h = num(e.naturalHeight);
   if (h !== undefined && h > 0) el.naturalHeight = h;
+  const rect = normalizeRect(e.intersectionRect);
+  if (rect !== undefined) el.intersectionRect = rect;
   const element = elementRef(e.element);
   if (element !== undefined) el.element = element;
   return el;

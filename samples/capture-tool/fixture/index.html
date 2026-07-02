@@ -1,0 +1,100 @@
+<!doctype html>
+<!--
+  rumcap local fixture — a purpose-built page that exercises the Performance-API surfaces the
+  PUBLIC sample corpus cannot ground (they need page cooperation):
+    * Element Timing        — `elementtiming` on an image AND a text block (image-paint / text-paint,
+                              naturalWidth/Height, intersectionRect, id + identifier)
+    * element attributes    — id / class / name on the LCP element, shift sources, event targets
+    * Server-Timing         — real values served by drive-local.mjs on the document + subresources
+    * long task names       — a 'self' task here + a same-origin iframe task (frame.html)
+    * layout shifts         — a no-input banner insertion AND an input-driven shift after the click
+    * mark/measure detail   — live `detail` payloads, incl. a DevTools-extensibility (React-style)
+                              `detail.devtools` track entry
+    * bfcache blocking      — an `unload` listener, so drive-local.mjs's back-navigation capture gets
+                              a populated notRestoredReasons tree
+  The content is synthetic and public — no PII. Served only from 127.0.0.1 by drive-local.mjs.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>rumcap local fixture</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; margin: 24px; max-width: 720px; }
+  .banner { background: #ffe9a8; padding: 18px; margin-bottom: 16px; border: 1px solid #d4b106; }
+  .controls { margin: 12px 0; }
+  .field { padding: 6px 8px; }
+  .btn { padding: 6px 14px; }
+  .hero-img { display: block; margin: 12px 0; }
+  .thumb { display: block; }
+  .task-frame { width: 320px; height: 60px; border: 1px dashed #999; }
+</style>
+</head>
+<body>
+  <header id="top" class="page-header">
+    <h1 id="headline" class="title hero-copy" elementtiming="headline">rumcap fixture page</h1>
+  </header>
+  <section class="controls">
+    <input id="email-field" class="field wide" name="email" type="text" placeholder="email">
+    <button id="go" class="btn cta" name="submit" type="button">Do work</button>
+  </section>
+  <main id="content" class="page-main">
+    <p id="intro" class="copy lead" elementtiming="intro-copy">
+      This paragraph carries an <code>elementtiming</code> attribute so it produces a
+      <em>text-paint</em> Element Timing entry (no url, no natural size — the 0/'' sentinel cases),
+      while the hero image below produces the <em>image-paint</em> variant with a URL, natural
+      dimensions, and an intersection rect.
+    </p>
+    <img id="hero" class="hero-img primary" elementtiming="hero-image" src="/hero.svg" width="600" height="300" alt="generated hero graphic">
+    <img id="thumb" class="thumb" elementtiming="thumb-image" src="/thumb.svg" width="96" height="96" alt="generated thumbnail">
+  </main>
+  <iframe id="taskframe" name="tasky" class="task-frame" src="/frame.html" title="task frame"></iframe>
+<script>
+  performance.mark('fixture:boot', { detail: { phase: 'boot', flags: ['a', 'b'], attempt: 1 } });
+  performance.mark('fixture:plain'); // no options — the live entry's detail is the platform-default null
+
+  // bfcache blocker: an unload listener is the classic blocking reason, so the driver's
+  // back-navigation pass captures a REAL populated notRestoredReasons tree.
+  addEventListener('unload', () => {});
+
+  const spin = (ms) => { const end = performance.now() + ms; while (performance.now() < end); };
+
+  // A main-document long task (entry-level name: 'self') + something hot for the profiler to sample.
+  setTimeout(() => {
+    spin(120);
+    performance.measure('fixture:hydrate', { start: 0, end: performance.now(), detail: { step: 'hydrate', budgetMs: 200 } });
+  }, 500);
+
+  // Layout shift with NO recent input: insert a banner above everything at ~700ms.
+  setTimeout(() => {
+    const banner = document.createElement('div');
+    banner.id = 'late-banner';
+    banner.className = 'banner announce';
+    banner.textContent = 'A late-inserted banner (forces a layout shift with no recent input)';
+    document.body.insertBefore(banner, document.body.firstChild);
+  }, 700);
+
+  // Click work: a measurable event duration, a DevTools-extensibility (React-style) track measure,
+  // and an input-driven layout shift (hadRecentInput: true, lastInputTime > 0).
+  document.getElementById('go').addEventListener('click', () => {
+    const t0 = performance.now();
+    spin(70);
+    performance.measure('⚛ OrderForm render', {
+      start: t0, end: performance.now(),
+      detail: { devtools: { dataType: 'track-entry', track: 'Components ⚛', trackGroup: 'React', color: 'primary' } },
+    });
+    const note = document.createElement('p');
+    note.id = 'click-note';
+    note.className = 'note';
+    note.textContent = 'clicked — content below shifted';
+    document.getElementById('content').prepend(note);
+  });
+
+  // Keystrokes need to cross Event Timing's 16ms durationThreshold to be recorded — give the input
+  // a handler with measurable work so typed keys produce entries targeting a name-carrying field.
+  document.getElementById('email-field').addEventListener('keydown', () => spin(25));
+
+  // A same-origin fetch whose response carries Server-Timing (grounds resource serverTiming values).
+  fetch('/api/data.json').then((r) => r.json()).catch(() => {});
+</script>
+</body>
+</html>

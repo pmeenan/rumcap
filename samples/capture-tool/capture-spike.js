@@ -47,18 +47,34 @@
     return parts.join(' > ');
   };
 
-  // toJSON() flattens the standard fields but DROPS the live DOM refs that can't be
-  // recovered offline. This is exactly the "must be captured live" set from the architecture.
+  // Structural attributes only (authored identity: tag/id/classes/name) — never element text.
+  const elementAttrs = (el) => {
+    if (!el || el.nodeType !== 1) return null;
+    const a = { tag: el.localName };
+    if (el.id) a.id = el.id;
+    if (el.classList && el.classList.length) a.classes = [...el.classList].slice(0, 8);
+    const nm = el.getAttribute && el.getAttribute('name');
+    if (nm) a.name = nm;
+    return a;
+  };
+
+  // toJSON() flattens the standard fields but DROPS the live DOM refs (and serializes the nested
+  // platform objects — serverTiming, longtask attribution, notRestoredReasons, intersectionRect —
+  // as {}: their getters live on the prototype). This is exactly the "must be captured live" set
+  // from the architecture. Keep in step with spike.mjs (the driver variant).
   const attribution = (e) => {
     const a = {};
     if (e.entryType === 'largest-contentful-paint') {
       a.element = selectorFor(e.element);
       a.url = e.url || null;
       a.loadTime = e.loadTime; a.renderTime = e.renderTime; a.size = e.size;
+      const attrs = elementAttrs(e.element);
+      if (attrs) a.elementAttrs = attrs;
     } else if (e.entryType === 'layout-shift') {
       a.value = e.value; a.hadRecentInput = e.hadRecentInput;
       a.sources = (e.sources || []).map((s) => ({
         node: selectorFor(s.node),
+        attrs: elementAttrs(s.node),
         previousRect: s.previousRect && s.previousRect.toJSON?.(),
         currentRect: s.currentRect && s.currentRect.toJSON?.(),
       }));
@@ -66,11 +82,29 @@
       a.name = e.name; a.target = selectorFor(e.target);
       a.interactionId = e.interactionId;
       a.processingStart = e.processingStart; a.processingEnd = e.processingEnd;
+      const attrs = elementAttrs(e.target);
+      if (attrs) a.targetAttrs = attrs;
     } else if (e.entryType === 'long-animation-frame') {
       // LoAF carries nested scripts[] with their own attribution — capture the shape.
       a.scripts = (e.scripts || []).map((s) => (s.toJSON ? s.toJSON() : { ...s }));
     } else if (e.entryType === 'element') {
       a.element = selectorFor(e.element); a.identifier = e.identifier; a.url = e.url || null;
+      const attrs = elementAttrs(e.element);
+      if (attrs) a.elementAttrs = attrs;
+      if (e.intersectionRect && e.intersectionRect.toJSON) a.intersectionRect = e.intersectionRect.toJSON();
+    } else if (e.entryType === 'mark' || e.entryType === 'measure') {
+      if (e.detail !== null && e.detail !== undefined) a.detail = e.detail;
+    } else if (e.entryType === 'longtask') {
+      a.attribution = [...(e.attribution || [])].map((t) => (t.toJSON ? t.toJSON() : { ...t }));
+    }
+    if (e.entryType === 'navigation' || e.entryType === 'resource') {
+      if (e.serverTiming && e.serverTiming.length) {
+        a.serverTiming = [...e.serverTiming].map((s) => (s.toJSON ? s.toJSON() : { ...s }));
+      }
+      if (e.entryType === 'navigation' && e.notRestoredReasons !== undefined) {
+        const nrr = e.notRestoredReasons;
+        a.notRestoredReasons = nrr && nrr.toJSON ? nrr.toJSON() : nrr;
+      }
     }
     return a;
   };
@@ -130,7 +164,7 @@
       try { po.disconnect(); } catch { /* ignore */ }
     }
     const out = {
-      spikeVersion: 1,
+      spikeVersion: 2, // 2: structured element attrs + live serverTiming/attribution/nRR/detail reads
       url: location.href,
       capturedAt: new Date().toISOString(),
       clock: {

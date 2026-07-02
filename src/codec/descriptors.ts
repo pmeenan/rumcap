@@ -65,7 +65,7 @@ export function bad(t: unknown): never {
 
 // ── Descriptors (leaf → composite). Field order MUST match the wire output byte-for-byte. ───────────
 
-const ELEMENT: Desc = [0, 'selector', S];
+const ELEMENT: Desc = [0, 'selector', S, 'tag', S, 'id', S, 'classes', SA, 'name', S];
 // Rect is a special-handler tag (RECTT), not a flat Desc: all 8 model fields are required, but the
 // wire stores only x/y/width/height when the edges match DOMRectReadOnly's definitions (top/left =
 // min, bottom/right = max — https://drafts.fxtf.org/geometry/#dom-domrectreadonly-domrectreadonly-top)
@@ -75,10 +75,10 @@ const PAINT_TIME: Desc = [1, 'startTime', R, 'paintTime', R, 'presentationTime',
 const LCP_ENTRY: Desc = [2, 'startTime', R, 'size', U, 'renderTime', R, 'loadTime', R, 'paintTime', R, 'presentationTime', R, 'id', S, 'url', S, 'element', ELEMENT];
 const SHIFT_SOURCE: Desc = [0, 'node', ELEMENT, 'previousRect', RECTT, 'currentRect', RECTT];
 const LAYOUT_SHIFT: Desc = [3, 'startTime', R, 'value', F, 'hadRecentInput', B, 'lastInputTime', R, 'sources', [SHIFT_SOURCE]];
-const ELEMENT_TIMING: Desc = [1, 'startTime', R, 'identifier', S, 'url', S, 'renderTime', R, 'loadTime', R, 'naturalWidth', U, 'naturalHeight', U, 'element', ELEMENT];
+const ELEMENT_TIMING: Desc = [1, 'startTime', R, 'name', S, 'identifier', S, 'id', S, 'url', S, 'renderTime', R, 'loadTime', R, 'paintTime', R, 'presentationTime', R, 'naturalWidth', U, 'naturalHeight', U, 'intersectionRect', RECTT, 'element', ELEMENT];
 const INTERACTION: Desc = [3, 'name', S, 'startTime', R, 'duration', D, 'processingStart', R, 'processingEnd', R, 'interactionId', U, 'cancelable', B, 'firstInput', B, 'target', ELEMENT];
 const LONGTASK_ATTR: Desc = [0, 'name', S, 'containerType', S, 'containerName', S, 'containerId', S, 'containerSrc', S];
-const LONGTASK: Desc = [2, 'startTime', R, 'duration', D, 'attribution', [LONGTASK_ATTR]];
+const LONGTASK: Desc = [2, 'startTime', R, 'duration', D, 'name', S, 'attribution', [LONGTASK_ATTR]];
 const LOAF_SCRIPT: Desc = [2, 'startTime', R, 'duration', D, 'invokerType', S, 'invoker', S, 'executionStart', R, 'forcedStyleAndLayoutDuration', D, 'pauseDuration', D, 'sourceURL', S, 'sourceFunctionName', S, 'sourceCharPosition', U, 'windowAttribution', S];
 const LOAF_FRAME: Desc = [2, 'startTime', R, 'duration', D, 'renderStart', R, 'styleAndLayoutStart', R, 'firstUIEventTimestamp', R, 'blockingDuration', D, 'paintTime', R, 'presentationTime', R, 'scripts', [LOAF_SCRIPT]];
 const MARK: Desc = [2, 'name', S, 'startTime', R, 'detail', J];

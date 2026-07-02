@@ -29,6 +29,13 @@ export interface InteractionsStream {
 export interface LongTaskEntry {
   startTime: RelMs;
   duration: DurationMs;
+  /**
+   * Which browsing context the task belongs to — the entry-level `name`:
+   * 'self' | 'same-origin[-ancestor|-descendant]' | 'cross-origin[-ancestor|-descendant|-unreachable]'
+   * | 'multiple-contexts' | 'unknown' (https://w3c.github.io/longtasks/#sec-PerformanceLongTaskTiming).
+   * The corpus exhibits 'self' and 'unknown'.
+   */
+  name?: string;
   attribution?: LongTaskAttribution[];
 }
 

@@ -1,0 +1,1622 @@
+{
+  "spikeVersion": 3,
+  "url": "http://127.0.0.1:36877/",
+  "title": "rumcap local fixture",
+  "bodyTextLength": 367,
+  "looksBlocked": false,
+  "clock": {
+    "timeOrigin": 1783005612353.8,
+    "now": 1903.7000000029802,
+    "timestampUnit": "ms",
+    "timestampBase": "timeOrigin"
+  },
+  "supportedEntryTypes": [
+    "element",
+    "event",
+    "first-input",
+    "largest-contentful-paint",
+    "layout-shift",
+    "long-animation-frame",
+    "longtask",
+    "mark",
+    "measure",
+    "navigation",
+    "paint",
+    "resource",
+    "visibility-state"
+  ],
+  "environment": {
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "userAgentData": {
+      "brands": [],
+      "mobile": false,
+      "platform": ""
+    },
+    "deviceMemory": 32,
+    "hardwareConcurrency": 12,
+    "connection": {
+      "effectiveType": "4g",
+      "rtt": 100,
+      "downlink": 1.45,
+      "saveData": false
+    },
+    "viewportWidth": 1366,
+    "viewportHeight": 768,
+    "screenWidth": 1366,
+    "screenHeight": 768,
+    "devicePixelRatio": 1,
+    "selfProfiler": "available"
+  },
+  "streams": {
+    "navigation": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "http://127.0.0.1:36877/",
+          "entryType": "navigation",
+          "startTime": 0,
+          "duration": 0,
+          "initiatorType": "navigation",
+          "deliveryType": "cache",
+          "nextHopProtocol": "",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "text/html",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 0.5,
+          "domainLookupStart": 0.5,
+          "domainLookupEnd": 0.5,
+          "connectStart": 0.5,
+          "secureConnectionStart": 0,
+          "connectEnd": 0.5,
+          "requestStart": 1,
+          "responseStart": 1.2000000029802322,
+          "firstInterimResponseStart": 1.2000000029802322,
+          "finalResponseHeadersStart": 0,
+          "responseEnd": 2,
+          "transferSize": 0,
+          "encodedBodySize": 5343,
+          "decodedBodySize": 5343,
+          "responseStatus": 200,
+          "serverTiming": [
+            {},
+            {},
+            {},
+            {}
+          ],
+          "unloadEventStart": 3.5,
+          "unloadEventEnd": 3.5,
+          "domInteractive": 0,
+          "domContentLoadedEventStart": 0,
+          "domContentLoadedEventEnd": 0,
+          "domComplete": 0,
+          "loadEventStart": 0,
+          "loadEventEnd": 0,
+          "type": "back_forward",
+          "redirectCount": 0,
+          "activationStart": 0,
+          "criticalCHRestart": 0,
+          "notRestoredReasons": {},
+          "confidence": null,
+          "__attribution": {
+            "serverTiming": [
+              {
+                "name": "db",
+                "duration": 53.2,
+                "description": "primary shard"
+              },
+              {
+                "name": "cache",
+                "duration": 0,
+                "description": "hit"
+              },
+              {
+                "name": "edge",
+                "duration": 1.4,
+                "description": ""
+              },
+              {
+                "name": "queue",
+                "duration": 0,
+                "description": ""
+              }
+            ],
+            "notRestoredReasons": {
+              "src": null,
+              "id": null,
+              "url": "http://127.0.0.1:36877/",
+              "name": null,
+              "reasons": [
+                {
+                  "reason": "masked"
+                }
+              ],
+              "children": []
+            }
+          }
+        },
+        {
+          "name": "http://127.0.0.1:36877/",
+          "entryType": "navigation",
+          "startTime": 0,
+          "duration": 100,
+          "initiatorType": "navigation",
+          "deliveryType": "cache",
+          "nextHopProtocol": "",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "text/html",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 0.5,
+          "domainLookupStart": 0.5,
+          "domainLookupEnd": 0.5,
+          "connectStart": 0.5,
+          "secureConnectionStart": 0,
+          "connectEnd": 0.5,
+          "requestStart": 1,
+          "responseStart": 1.2000000029802322,
+          "firstInterimResponseStart": 1.2000000029802322,
+          "finalResponseHeadersStart": 0,
+          "responseEnd": 2,
+          "transferSize": 0,
+          "encodedBodySize": 5343,
+          "decodedBodySize": 5343,
+          "responseStatus": 200,
+          "serverTiming": [
+            {},
+            {},
+            {},
+            {}
+          ],
+          "unloadEventStart": 3.5,
+          "unloadEventEnd": 3.5,
+          "domInteractive": 13.400000005960464,
+          "domContentLoadedEventStart": 13.5,
+          "domContentLoadedEventEnd": 13.5,
+          "domComplete": 100,
+          "loadEventStart": 100,
+          "loadEventEnd": 100,
+          "type": "back_forward",
+          "redirectCount": 0,
+          "activationStart": 0,
+          "criticalCHRestart": 0,
+          "notRestoredReasons": {},
+          "confidence": {},
+          "__attribution": {
+            "serverTiming": [
+              {
+                "name": "db",
+                "duration": 53.2,
+                "description": "primary shard"
+              },
+              {
+                "name": "cache",
+                "duration": 0,
+                "description": "hit"
+              },
+              {
+                "name": "edge",
+                "duration": 1.4,
+                "description": ""
+              },
+              {
+                "name": "queue",
+                "duration": 0,
+                "description": ""
+              }
+            ],
+            "notRestoredReasons": {
+              "src": null,
+              "id": null,
+              "url": "http://127.0.0.1:36877/",
+              "name": null,
+              "reasons": [
+                {
+                  "reason": "masked"
+                }
+              ],
+              "children": []
+            }
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "resource": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "http://127.0.0.1:36877/hero.svg",
+          "entryType": "resource",
+          "startTime": 9.700000002980232,
+          "duration": 0,
+          "initiatorType": "img",
+          "deliveryType": "cache",
+          "nextHopProtocol": "http/1.1",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "image/svg+xml",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 9.700000002980232,
+          "domainLookupStart": 9.700000002980232,
+          "domainLookupEnd": 9.700000002980232,
+          "connectStart": 9.700000002980232,
+          "secureConnectionStart": 0,
+          "connectEnd": 9.700000002980232,
+          "requestStart": 9.700000002980232,
+          "responseStart": 9.700000002980232,
+          "firstInterimResponseStart": 0,
+          "finalResponseHeadersStart": 0,
+          "responseEnd": 9.700000002980232,
+          "transferSize": 0,
+          "encodedBodySize": 27071,
+          "decodedBodySize": 27071,
+          "responseStatus": 200,
+          "serverTiming": [
+            {}
+          ],
+          "__attribution": {
+            "serverTiming": [
+              {
+                "name": "origin",
+                "duration": 11.3,
+                "description": "edge-cache-miss"
+              }
+            ]
+          }
+        },
+        {
+          "name": "http://127.0.0.1:36877/thumb.svg",
+          "entryType": "resource",
+          "startTime": 9.700000002980232,
+          "duration": 0,
+          "initiatorType": "img",
+          "deliveryType": "cache",
+          "nextHopProtocol": "http/1.1",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "image/svg+xml",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 9.700000002980232,
+          "domainLookupStart": 9.700000002980232,
+          "domainLookupEnd": 9.700000002980232,
+          "connectStart": 9.700000002980232,
+          "secureConnectionStart": 0,
+          "connectEnd": 9.700000002980232,
+          "requestStart": 9.700000002980232,
+          "responseStart": 9.700000002980232,
+          "firstInterimResponseStart": 0,
+          "finalResponseHeadersStart": 0,
+          "responseEnd": 9.700000002980232,
+          "transferSize": 0,
+          "encodedBodySize": 4071,
+          "decodedBodySize": 4071,
+          "responseStatus": 200,
+          "serverTiming": []
+        },
+        {
+          "name": "http://127.0.0.1:36877/api/data.json",
+          "entryType": "resource",
+          "startTime": 13.299999997019768,
+          "duration": 1.1000000089406967,
+          "initiatorType": "fetch",
+          "deliveryType": "cache",
+          "nextHopProtocol": "",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "application/json",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 13.299999997019768,
+          "domainLookupStart": 13.299999997019768,
+          "domainLookupEnd": 13.299999997019768,
+          "connectStart": 13.299999997019768,
+          "secureConnectionStart": 0,
+          "connectEnd": 13.299999997019768,
+          "requestStart": 13.599999994039536,
+          "responseStart": 13.700000002980232,
+          "firstInterimResponseStart": 13.700000002980232,
+          "finalResponseHeadersStart": 0,
+          "responseEnd": 14.400000005960464,
+          "transferSize": 0,
+          "encodedBodySize": 27,
+          "decodedBodySize": 27,
+          "responseStatus": 200,
+          "serverTiming": [
+            {},
+            {}
+          ],
+          "__attribution": {
+            "serverTiming": [
+              {
+                "name": "db",
+                "duration": 12.5,
+                "description": "user lookup"
+              },
+              {
+                "name": "cache",
+                "duration": 0,
+                "description": "miss"
+              }
+            ]
+          }
+        },
+        {
+          "name": "http://127.0.0.1:36877/frame.html",
+          "entryType": "resource",
+          "startTime": 12.400000005960464,
+          "duration": 87.59999999403954,
+          "initiatorType": "iframe",
+          "deliveryType": "",
+          "nextHopProtocol": "",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "",
+          "contentEncoding": "",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 12.400000005960464,
+          "domainLookupStart": 0,
+          "domainLookupEnd": 0,
+          "connectStart": 0,
+          "secureConnectionStart": 0,
+          "connectEnd": 0,
+          "requestStart": 0,
+          "responseStart": 0,
+          "firstInterimResponseStart": 0,
+          "finalResponseHeadersStart": 0,
+          "responseEnd": 100,
+          "transferSize": 0,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "responseStatus": 0,
+          "serverTiming": []
+        }
+      ],
+      "dropped": 0
+    },
+    "paint": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "first-paint",
+          "entryType": "paint",
+          "startTime": 20,
+          "duration": 0,
+          "paintTime": 14.400000005960464,
+          "presentationTime": 20
+        },
+        {
+          "name": "first-contentful-paint",
+          "entryType": "paint",
+          "startTime": 20,
+          "duration": 0,
+          "paintTime": 14.400000005960464,
+          "presentationTime": 20
+        }
+      ],
+      "dropped": 0
+    },
+    "largest-contentful-paint": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "",
+          "entryType": "largest-contentful-paint",
+          "startTime": 20,
+          "duration": 0,
+          "paintTime": 14.400000005960464,
+          "presentationTime": 20,
+          "size": 180000,
+          "renderTime": 20,
+          "loadTime": 13.700000002980232,
+          "id": "hero",
+          "url": "http://127.0.0.1:36877/hero.svg",
+          "__attribution": {
+            "element": "img#hero",
+            "url": "http://127.0.0.1:36877/hero.svg",
+            "loadTime": 13.700000002980232,
+            "renderTime": 20,
+            "size": 180000,
+            "elementAttrs": {
+              "tag": "img",
+              "id": "hero",
+              "classes": [
+                "hero-img",
+                "primary"
+              ]
+            }
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "layout-shift": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "",
+          "entryType": "layout-shift",
+          "startTime": 714,
+          "duration": 0,
+          "value": 0.0298721688199512,
+          "hadRecentInput": false,
+          "lastInputTime": 0,
+          "sources": [
+            {},
+            {},
+            {},
+            {}
+          ],
+          "__attribution": {
+            "value": 0.0298721688199512,
+            "hadRecentInput": false,
+            "sources": [
+              {
+                "node": "main#content",
+                "attrs": {
+                  "tag": "main",
+                  "id": "content",
+                  "classes": [
+                    "page-main"
+                  ]
+                },
+                "previousRect": {
+                  "x": 24,
+                  "y": 140.4375,
+                  "width": 720,
+                  "height": 497,
+                  "top": 140.4375,
+                  "right": 744,
+                  "bottom": 637.4375,
+                  "left": 24
+                },
+                "currentRect": {
+                  "x": 24,
+                  "y": 223.875,
+                  "width": 720,
+                  "height": 497,
+                  "top": 223.875,
+                  "right": 744,
+                  "bottom": 720.875,
+                  "left": 24
+                }
+              },
+              {
+                "node": "header#top",
+                "attrs": {
+                  "tag": "header",
+                  "id": "top",
+                  "classes": [
+                    "page-header"
+                  ]
+                },
+                "previousRect": {
+                  "x": 24,
+                  "y": 24,
+                  "width": 720,
+                  "height": 48,
+                  "top": 24,
+                  "right": 744,
+                  "bottom": 72,
+                  "left": 24
+                },
+                "currentRect": {
+                  "x": 24,
+                  "y": 107.4375,
+                  "width": 720,
+                  "height": 48,
+                  "top": 107.4375,
+                  "right": 744,
+                  "bottom": 155.4375,
+                  "left": 24
+                }
+              },
+              {
+                "node": "html > body > section.controls",
+                "attrs": {
+                  "tag": "section",
+                  "classes": [
+                    "controls"
+                  ]
+                },
+                "previousRect": {
+                  "x": 24,
+                  "y": 93.4375,
+                  "width": 720,
+                  "height": 31,
+                  "top": 93.4375,
+                  "right": 744,
+                  "bottom": 124.4375,
+                  "left": 24
+                },
+                "currentRect": {
+                  "x": 24,
+                  "y": 176.875,
+                  "width": 720,
+                  "height": 31,
+                  "top": 176.875,
+                  "right": 744,
+                  "bottom": 207.875,
+                  "left": 24
+                }
+              },
+              {
+                "node": "iframe#taskframe",
+                "attrs": {
+                  "tag": "iframe",
+                  "id": "taskframe",
+                  "classes": [
+                    "task-frame"
+                  ],
+                  "name": "tasky"
+                },
+                "previousRect": {
+                  "x": 24,
+                  "y": 637.4375,
+                  "width": 322,
+                  "height": 62,
+                  "top": 637.4375,
+                  "right": 346,
+                  "bottom": 699.4375,
+                  "left": 24
+                },
+                "currentRect": {
+                  "x": 24,
+                  "y": 720.875,
+                  "width": 322,
+                  "height": 47.125,
+                  "top": 720.875,
+                  "right": 346,
+                  "bottom": 768,
+                  "left": 24
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "first-input": {
+      "status": "present",
+      "entries": [],
+      "dropped": 0
+    },
+    "event": {
+      "status": "present",
+      "entries": [],
+      "dropped": 0
+    },
+    "longtask": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "same-origin-descendant",
+          "entryType": "longtask",
+          "startTime": 18.400000005960464,
+          "duration": 80,
+          "attribution": [
+            {}
+          ],
+          "__attribution": {
+            "attribution": [
+              {
+                "name": "unknown",
+                "entryType": "taskattribution",
+                "startTime": 0,
+                "duration": 0,
+                "containerType": "iframe",
+                "containerSrc": "/frame.html",
+                "containerId": "taskframe",
+                "containerName": "tasky"
+              }
+            ]
+          }
+        },
+        {
+          "name": "same-origin-descendant",
+          "entryType": "longtask",
+          "startTime": 398.70000000298023,
+          "duration": 100,
+          "attribution": [
+            {}
+          ],
+          "__attribution": {
+            "attribution": [
+              {
+                "name": "unknown",
+                "entryType": "taskattribution",
+                "startTime": 0,
+                "duration": 0,
+                "containerType": "iframe",
+                "containerSrc": "/frame.html",
+                "containerId": "taskframe",
+                "containerName": "tasky"
+              }
+            ]
+          }
+        },
+        {
+          "name": "self",
+          "entryType": "longtask",
+          "startTime": 513.2999999970198,
+          "duration": 120,
+          "attribution": [
+            {}
+          ],
+          "__attribution": {
+            "attribution": [
+              {
+                "name": "unknown",
+                "entryType": "taskattribution",
+                "startTime": 0,
+                "duration": 0,
+                "containerType": "window",
+                "containerSrc": "",
+                "containerId": "",
+                "containerName": ""
+              }
+            ]
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "long-animation-frame": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "long-animation-frame",
+          "entryType": "long-animation-frame",
+          "startTime": 15.099999994039536,
+          "duration": 84.1000000089407,
+          "paintTime": 99.20000000298023,
+          "presentationTime": 104,
+          "renderStart": 98.90000000596046,
+          "styleAndLayoutStart": 98.90000000596046,
+          "firstUIEventTimestamp": 0,
+          "blockingDuration": 30.6,
+          "scripts": [
+            {}
+          ],
+          "__attribution": {
+            "scripts": [
+              {
+                "name": "script",
+                "entryType": "script",
+                "startTime": 18.599999994039536,
+                "duration": 80,
+                "invoker": "http://127.0.0.1:36877/frame.html",
+                "invokerType": "classic-script",
+                "windowAttribution": "descendant",
+                "executionStart": 18.599999994039536,
+                "forcedStyleAndLayoutDuration": 0,
+                "pauseDuration": 0,
+                "sourceURL": "http://127.0.0.1:36877/frame.html",
+                "sourceFunctionName": "",
+                "sourceCharPosition": 0
+              }
+            ]
+          }
+        },
+        {
+          "name": "long-animation-frame",
+          "entryType": "long-animation-frame",
+          "startTime": 513.2999999970198,
+          "duration": 120.217,
+          "renderStart": 0,
+          "styleAndLayoutStart": 0,
+          "firstUIEventTimestamp": 0,
+          "blockingDuration": 70.3,
+          "scripts": [
+            {}
+          ],
+          "__attribution": {
+            "scripts": [
+              {
+                "name": "script",
+                "entryType": "script",
+                "startTime": 513.2999999970198,
+                "duration": 120.20000000298023,
+                "invoker": "TimerHandler:setTimeout",
+                "invokerType": "user-callback",
+                "windowAttribution": "self",
+                "executionStart": 513.2999999970198,
+                "forcedStyleAndLayoutDuration": 0,
+                "pauseDuration": 0,
+                "sourceURL": "http://127.0.0.1:36877/",
+                "sourceFunctionName": "",
+                "sourceCharPosition": 626
+              }
+            ]
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "element": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "image-paint",
+          "entryType": "element",
+          "startTime": 20,
+          "duration": 0,
+          "paintTime": 14.400000005960464,
+          "presentationTime": 20,
+          "renderTime": 20,
+          "loadTime": 13.700000002980232,
+          "intersectionRect": {},
+          "identifier": "hero-image",
+          "naturalWidth": 600,
+          "naturalHeight": 300,
+          "id": "hero",
+          "url": "http://127.0.0.1:36877/hero.svg",
+          "__attribution": {
+            "element": "img#hero",
+            "identifier": "hero-image",
+            "url": "http://127.0.0.1:36877/hero.svg",
+            "elementAttrs": {
+              "tag": "img",
+              "id": "hero",
+              "classes": [
+                "hero-img",
+                "primary"
+              ]
+            },
+            "intersectionRect": {
+              "x": 24,
+              "y": 229,
+              "width": 600,
+              "height": 300,
+              "top": 229,
+              "right": 624,
+              "bottom": 529,
+              "left": 24
+            }
+          }
+        },
+        {
+          "name": "image-paint",
+          "entryType": "element",
+          "startTime": 20,
+          "duration": 0,
+          "paintTime": 14.400000005960464,
+          "presentationTime": 20,
+          "renderTime": 20,
+          "loadTime": 13.700000002980232,
+          "intersectionRect": {},
+          "identifier": "thumb-image",
+          "naturalWidth": 96,
+          "naturalHeight": 96,
+          "id": "thumb",
+          "url": "http://127.0.0.1:36877/thumb.svg",
+          "__attribution": {
+            "element": "img#thumb",
+            "identifier": "thumb-image",
+            "url": "http://127.0.0.1:36877/thumb.svg",
+            "elementAttrs": {
+              "tag": "img",
+              "id": "thumb",
+              "classes": [
+                "thumb"
+              ]
+            },
+            "intersectionRect": {
+              "x": 24,
+              "y": 541,
+              "width": 96,
+              "height": 96,
+              "top": 541,
+              "right": 120,
+              "bottom": 637,
+              "left": 24
+            }
+          }
+        },
+        {
+          "name": "text-paint",
+          "entryType": "element",
+          "startTime": 20,
+          "duration": 0,
+          "paintTime": 14.400000005960464,
+          "presentationTime": 20,
+          "renderTime": 20,
+          "loadTime": 0,
+          "intersectionRect": {},
+          "identifier": "headline",
+          "naturalWidth": 0,
+          "naturalHeight": 0,
+          "id": "headline",
+          "url": "",
+          "__attribution": {
+            "element": "h1#headline",
+            "identifier": "headline",
+            "url": null,
+            "elementAttrs": {
+              "tag": "h1",
+              "id": "headline",
+              "classes": [
+                "title",
+                "hero-copy"
+              ]
+            },
+            "intersectionRect": {
+              "x": 24,
+              "y": 26,
+              "width": 327,
+              "height": 43,
+              "top": 26,
+              "right": 351,
+              "bottom": 69,
+              "left": 24
+            }
+          }
+        },
+        {
+          "name": "text-paint",
+          "entryType": "element",
+          "startTime": 20,
+          "duration": 0,
+          "paintTime": 14.400000005960464,
+          "presentationTime": 20,
+          "renderTime": 20,
+          "loadTime": 0,
+          "intersectionRect": {},
+          "identifier": "intro-copy",
+          "naturalWidth": 0,
+          "naturalHeight": 0,
+          "id": "intro",
+          "url": "",
+          "__attribution": {
+            "element": "p#intro",
+            "identifier": "intro-copy",
+            "url": null,
+            "elementAttrs": {
+              "tag": "p",
+              "id": "intro",
+              "classes": [
+                "copy",
+                "lead"
+              ]
+            },
+            "intersectionRect": {
+              "x": 24,
+              "y": 141,
+              "width": 720,
+              "height": 71,
+              "top": 141,
+              "right": 744,
+              "bottom": 212,
+              "left": 24
+            }
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "mark": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "fixture:boot",
+          "entryType": "mark",
+          "startTime": 13,
+          "duration": 0,
+          "__attribution": {
+            "detail": {
+              "phase": "boot",
+              "flags": [
+                "a",
+                "b"
+              ],
+              "attempt": 1
+            }
+          }
+        },
+        {
+          "name": "fixture:plain",
+          "entryType": "mark",
+          "startTime": 13,
+          "duration": 0
+        }
+      ],
+      "dropped": 0
+    },
+    "measure": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "fixture:hydrate",
+          "entryType": "measure",
+          "startTime": 0,
+          "duration": 633.4000000059605,
+          "__attribution": {
+            "detail": {
+              "step": "hydrate",
+              "budgetMs": 200
+            }
+          }
+        }
+      ],
+      "dropped": 0
+    },
+    "visibility-state": {
+      "status": "present",
+      "entries": [
+        {
+          "name": "visible",
+          "entryType": "visibility-state",
+          "startTime": 0,
+          "duration": 0
+        }
+      ],
+      "dropped": 0
+    }
+  },
+  "profile": {
+    "status": "present",
+    "requestedSampleIntervalMs": 2,
+    "actualSampleIntervalMs": 10,
+    "maxBufferSize": 30000,
+    "sampleBufferFull": false,
+    "resources": [
+      "http://127.0.0.1:36877/"
+    ],
+    "frames": [
+      {
+        "column": 16,
+        "line": 59,
+        "name": "spin",
+        "resourceId": 0
+      },
+      {
+        "column": 14,
+        "line": 62,
+        "name": "",
+        "resourceId": 0
+      },
+      {
+        "name": "now"
+      }
+    ],
+    "stacks": [
+      {
+        "frameId": 1
+      },
+      {
+        "frameId": 0,
+        "parentId": 0
+      },
+      {
+        "frameId": 2,
+        "parentId": 1
+      }
+    ],
+    "samples": [
+      {
+        "timestamp": 10.824999988079071
+      },
+      {
+        "timestamp": 19.40499998629093
+      },
+      {
+        "timestamp": 20.974999994039536
+      },
+      {
+        "timestamp": 31.054999992251396
+      },
+      {
+        "timestamp": 41.14000000059605
+      },
+      {
+        "timestamp": 51.269999995827675
+      },
+      {
+        "timestamp": 61.349999994039536
+      },
+      {
+        "timestamp": 71.44499999284744
+      },
+      {
+        "timestamp": 81.53499999642372
+      },
+      {
+        "timestamp": 91.625
+      },
+      {
+        "timestamp": 101.71499998867512
+      },
+      {
+        "timestamp": 111.80999998748302
+      },
+      {
+        "timestamp": 121.90499998629093
+      },
+      {
+        "timestamp": 132.0949999988079
+      },
+      {
+        "timestamp": 142.16999998688698
+      },
+      {
+        "timestamp": 152.2749999910593
+      },
+      {
+        "timestamp": 162.35999999940395
+      },
+      {
+        "timestamp": 172.48999999463558
+      },
+      {
+        "timestamp": 182.60999999940395
+      },
+      {
+        "timestamp": 192.70499999821186
+      },
+      {
+        "timestamp": 202.77999998629093
+      },
+      {
+        "timestamp": 212.90999999642372
+      },
+      {
+        "timestamp": 223.0249999910593
+      },
+      {
+        "timestamp": 233.0949999988079
+      },
+      {
+        "timestamp": 243.19999998807907
+      },
+      {
+        "timestamp": 253.2749999910593
+      },
+      {
+        "timestamp": 263.4599999934435
+      },
+      {
+        "timestamp": 273.625
+      },
+      {
+        "timestamp": 283.7149999886751
+      },
+      {
+        "timestamp": 293.8149999976158
+      },
+      {
+        "timestamp": 303.97999998927116
+      },
+      {
+        "timestamp": 314.02999998629093
+      },
+      {
+        "timestamp": 324.10499998927116
+      },
+      {
+        "timestamp": 334.17499999701977
+      },
+      {
+        "timestamp": 344.27999998629093
+      },
+      {
+        "timestamp": 354.35499998927116
+      },
+      {
+        "timestamp": 364.4899999946356
+      },
+      {
+        "timestamp": 374.559999987483
+      },
+      {
+        "timestamp": 384.69499999284744
+      },
+      {
+        "timestamp": 394.73499999940395
+      },
+      {
+        "timestamp": 404.8049999922514
+      },
+      {
+        "timestamp": 414.875
+      },
+      {
+        "timestamp": 424.94499999284744
+      },
+      {
+        "timestamp": 435.00999999046326
+      },
+      {
+        "timestamp": 445.0849999934435
+      },
+      {
+        "timestamp": 455.1449999958277
+      },
+      {
+        "timestamp": 465.25999999046326
+      },
+      {
+        "timestamp": 475.34999999403954
+      },
+      {
+        "timestamp": 485.42499999701977
+      },
+      {
+        "timestamp": 495.5
+      },
+      {
+        "timestamp": 505.5899999886751
+      },
+      {
+        "stackId": 1,
+        "timestamp": 514.184999987483
+      },
+      {
+        "stackId": 1,
+        "timestamp": 515.6549999862909
+      },
+      {
+        "stackId": 2,
+        "timestamp": 526.0899999886751
+      },
+      {
+        "stackId": 2,
+        "timestamp": 536.169999986887
+      },
+      {
+        "stackId": 2,
+        "timestamp": 546.2549999952316
+      },
+      {
+        "stackId": 2,
+        "timestamp": 556.3349999934435
+      },
+      {
+        "stackId": 1,
+        "timestamp": 566.609999999404
+      },
+      {
+        "stackId": 1,
+        "timestamp": 576.6949999928474
+      },
+      {
+        "stackId": 1,
+        "timestamp": 587.1949999928474
+      },
+      {
+        "stackId": 2,
+        "timestamp": 597.2799999862909
+      },
+      {
+        "stackId": 2,
+        "timestamp": 607.359999999404
+      },
+      {
+        "stackId": 1,
+        "timestamp": 617.4549999982119
+      },
+      {
+        "stackId": 1,
+        "timestamp": 627.5199999958277
+      },
+      {
+        "timestamp": 637.6599999964237
+      },
+      {
+        "timestamp": 647.7399999946356
+      },
+      {
+        "timestamp": 657.8249999880791
+      },
+      {
+        "timestamp": 667.9149999916553
+      },
+      {
+        "timestamp": 678
+      },
+      {
+        "timestamp": 688.0999999940395
+      },
+      {
+        "timestamp": 698.2149999886751
+      },
+      {
+        "timestamp": 708.2899999916553
+      },
+      {
+        "timestamp": 718.3849999904633
+      },
+      {
+        "timestamp": 728.5049999952316
+      },
+      {
+        "timestamp": 738.5499999970198
+      },
+      {
+        "timestamp": 748.669999986887
+      },
+      {
+        "timestamp": 758.7149999886751
+      },
+      {
+        "timestamp": 768.7899999916553
+      },
+      {
+        "timestamp": 778.9099999964237
+      },
+      {
+        "timestamp": 789.0799999982119
+      },
+      {
+        "timestamp": 799.1449999958277
+      },
+      {
+        "timestamp": 809.2249999940395
+      },
+      {
+        "timestamp": 819.3049999922514
+      },
+      {
+        "timestamp": 829.3849999904633
+      },
+      {
+        "timestamp": 839.5499999970198
+      },
+      {
+        "timestamp": 849.640000000596
+      },
+      {
+        "timestamp": 859.7299999892712
+      },
+      {
+        "timestamp": 869.8699999898672
+      },
+      {
+        "timestamp": 880.0049999952316
+      },
+      {
+        "timestamp": 890.044999986887
+      },
+      {
+        "timestamp": 900.1199999898672
+      },
+      {
+        "timestamp": 910.3549999892712
+      },
+      {
+        "timestamp": 920.4599999934435
+      },
+      {
+        "timestamp": 930.6049999892712
+      },
+      {
+        "timestamp": 940.7199999988079
+      },
+      {
+        "timestamp": 950.8549999892712
+      },
+      {
+        "timestamp": 960.934999987483
+      },
+      {
+        "timestamp": 971.0699999928474
+      },
+      {
+        "timestamp": 981.1149999946356
+      },
+      {
+        "timestamp": 991.1999999880791
+      },
+      {
+        "timestamp": 1001.2699999958277
+      },
+      {
+        "timestamp": 1011.3399999886751
+      },
+      {
+        "timestamp": 1021.4149999916553
+      },
+      {
+        "timestamp": 1031.5499999970198
+      },
+      {
+        "timestamp": 1041.640000000596
+      },
+      {
+        "timestamp": 1051.734999999404
+      },
+      {
+        "timestamp": 1061.8349999934435
+      },
+      {
+        "timestamp": 1071.9599999934435
+      },
+      {
+        "timestamp": 1081.9949999898672
+      },
+      {
+        "timestamp": 1092.0799999982119
+      },
+      {
+        "timestamp": 1102.1599999964237
+      },
+      {
+        "timestamp": 1112.2749999910593
+      },
+      {
+        "timestamp": 1122.3299999982119
+      },
+      {
+        "timestamp": 1132.449999988079
+      },
+      {
+        "timestamp": 1142.640000000596
+      },
+      {
+        "timestamp": 1152.7549999952316
+      },
+      {
+        "timestamp": 1162.8999999910593
+      },
+      {
+        "timestamp": 1172.9599999934435
+      },
+      {
+        "timestamp": 1183.0499999970198
+      },
+      {
+        "timestamp": 1193.1449999958277
+      },
+      {
+        "timestamp": 1203.2149999886751
+      },
+      {
+        "timestamp": 1213.3149999976158
+      },
+      {
+        "timestamp": 1223.390000000596
+      },
+      {
+        "timestamp": 1233.5549999922514
+      },
+      {
+        "timestamp": 1243.6299999952316
+      },
+      {
+        "timestamp": 1253.7149999886751
+      },
+      {
+        "timestamp": 1263.7899999916553
+      },
+      {
+        "timestamp": 1273.8649999946356
+      },
+      {
+        "timestamp": 1283.9399999976158
+      },
+      {
+        "timestamp": 1294.0649999976158
+      },
+      {
+        "timestamp": 1304.1799999922514
+      },
+      {
+        "timestamp": 1314.2699999958277
+      },
+      {
+        "timestamp": 1324.3849999904633
+      },
+      {
+        "timestamp": 1334.434999987483
+      },
+      {
+        "timestamp": 1344.5499999970198
+      },
+      {
+        "timestamp": 1354.6799999922514
+      },
+      {
+        "timestamp": 1364.7449999898672
+      },
+      {
+        "timestamp": 1374.8349999934435
+      },
+      {
+        "timestamp": 1384.9449999928474
+      },
+      {
+        "timestamp": 1395.199999988079
+      },
+      {
+        "timestamp": 1405.2749999910593
+      },
+      {
+        "timestamp": 1415.359999999404
+      },
+      {
+        "timestamp": 1425.4249999970198
+      },
+      {
+        "timestamp": 1435.5249999910593
+      },
+      {
+        "timestamp": 1445.6749999970198
+      },
+      {
+        "timestamp": 1455.904999986291
+      },
+      {
+        "timestamp": 1466.044999986887
+      },
+      {
+        "timestamp": 1476.2699999958277
+      },
+      {
+        "timestamp": 1486.4799999892712
+      },
+      {
+        "timestamp": 1496.6599999964237
+      },
+      {
+        "timestamp": 1506.75
+      },
+      {
+        "timestamp": 1516.8299999982119
+      },
+      {
+        "timestamp": 1526.9099999964237
+      },
+      {
+        "timestamp": 1536.9899999946356
+      },
+      {
+        "timestamp": 1547.0699999928474
+      },
+      {
+        "timestamp": 1557.1599999964237
+      },
+      {
+        "timestamp": 1567.2549999952316
+      },
+      {
+        "timestamp": 1577.344999998808
+      },
+      {
+        "timestamp": 1587.434999987483
+      },
+      {
+        "timestamp": 1597.5899999886751
+      },
+      {
+        "timestamp": 1607.7049999982119
+      },
+      {
+        "timestamp": 1617.7899999916553
+      },
+      {
+        "timestamp": 1627.9649999886751
+      },
+      {
+        "timestamp": 1638.0849999934435
+      },
+      {
+        "timestamp": 1648.154999986291
+      },
+      {
+        "timestamp": 1658.3149999976158
+      },
+      {
+        "timestamp": 1668.4299999922514
+      },
+      {
+        "timestamp": 1678.5349999964237
+      },
+      {
+        "timestamp": 1688.6899999976158
+      },
+      {
+        "timestamp": 1698.8299999982119
+      },
+      {
+        "timestamp": 1708.9549999982119
+      },
+      {
+        "timestamp": 1719.029999986291
+      },
+      {
+        "timestamp": 1729.1349999904633
+      },
+      {
+        "timestamp": 1739.2299999892712
+      },
+      {
+        "timestamp": 1749.344999998808
+      },
+      {
+        "timestamp": 1759.4549999982119
+      },
+      {
+        "timestamp": 1769.6499999910593
+      },
+      {
+        "timestamp": 1779.779999986291
+      },
+      {
+        "timestamp": 1789.8549999892712
+      },
+      {
+        "timestamp": 1799.9599999934435
+      },
+      {
+        "timestamp": 1810.1499999910593
+      },
+      {
+        "timestamp": 1820.2599999904633
+      },
+      {
+        "timestamp": 1830.3399999886751
+      },
+      {
+        "timestamp": 1840.469999998808
+      },
+      {
+        "timestamp": 1850.5649999976158
+      },
+      {
+        "timestamp": 1860.6449999958277
+      },
+      {
+        "timestamp": 1870.7449999898672
+      },
+      {
+        "timestamp": 1880.824999988079
+      },
+      {
+        "timestamp": 1890.9299999922514
+      },
+      {
+        "timestamp": 1901.0649999976158
+      }
+    ],
+    "counts": {
+      "resources": 1,
+      "frames": 3,
+      "stacks": 3,
+      "samples": 190
+    }
+  }
+}
