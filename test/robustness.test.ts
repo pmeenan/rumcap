@@ -53,9 +53,11 @@ function writeSection(w: Writer, tag: number, payload: Uint8Array): void {
 }
 
 /** Assemble a complete `.rcap` file from raw sections. The string table is NOT added implicitly —
- *  pass it in `sections` (usually first) so duplicate/mis-ordered-table cases stay expressible. */
+ *  pass it in `sections` (usually first) so duplicate/mis-ordered-table cases stay expressible.
+ *  Writes the v3 tick-scale prelude as 1, matching the fresh `FieldEncoder`s used to craft sections. */
 function assembleFile(formatVersion: number, sections: RawSection[]): Uint8Array {
   const body = new Writer();
+  body.varuint(1);
   for (const s of sections) writeSection(body, s.tag, s.bytes);
   const out = new Writer();
   out.bytes(MAGIC as Uint8Array);

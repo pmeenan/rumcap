@@ -681,6 +681,177 @@ const customAndMeta: Capture = {
   },
 };
 
+// ── 10. wireStressV3 — SYNTHETIC codec-stress for the v3 wire paths ─────────────────────────────────
+// Exercises, deliberately: the row/columnar boundary (7 entries = row, 8+ = column-major with
+// transposed presence), ragged optional presence inside columns, JSON details inside a column, nested
+// arrays inside a column (longtask attribution), OUT-OF-ORDER timestamps (negative R-chain deltas),
+// and every rect encoding path — integer derived, float derived, negative-width-but-consistent,
+// hand-built INCONSISTENT (verbatim fallback), a -0 coordinate (must stay f64 to keep its sign), and
+// an off-grid float. Values are synthetic where they need to be extreme; shapes match the model.
+const wireStressV3: Capture = {
+  formatVersion: FORMAT_VERSION,
+  manifest: {
+    clock: baseClock,
+    streams: streamManifest('not-requested', {
+      resources: present('resources'),
+      cls: present('cls'),
+      interactions: present('interactions'),
+      errors: present('errors'),
+      userTiming: present('userTiming'),
+      visibility: present('visibility'),
+      longTasks: present('longTasks'),
+    }),
+    config: defaultConfig,
+  },
+  streams: {
+    // Exactly 8 resources → the COLUMNAR path for the widest struct, with ragged presence: some have
+    // full network phases, some only sizes, one has serverTiming (a nested struct array in a column),
+    // one carries a > 2^32 size (varuint past 32 bits inside a column).
+    resources: [
+      { name: 'https://ex.test/a.js', startTime: rel(100.1), duration: dur(50.5), initiatorType: 'script', fetchStart: rel(100.2), responseEnd: rel(150.6), transferSize: 1234, encodedBodySize: 900, decodedBodySize: 2000, responseStatus: 200 },
+      { name: 'https://ex.test/b.css', startTime: rel(90.4), duration: dur(10), initiatorType: 'link', renderBlockingStatus: 'blocking' }, // startTime BEFORE the previous entry → negative chain delta
+      { name: 'https://ex.test/c.png', startTime: rel(200), duration: dur(0), initiatorType: 'img', transferSize: 0, responseStatus: 0 }, // zeros are real values
+      { name: 'https://ex.test/d.woff2', startTime: rel(210.25), duration: dur(3.125), initiatorType: 'css', deliveryType: 'cache', nextHopProtocol: 'h2' },
+      { name: 'https://ex.test/e.json', startTime: rel(300), duration: dur(12.3), initiatorType: 'fetch', serverTiming: [{ name: 'db', duration: dur(4.5), description: 'primary' }, { name: 'edge' }] },
+      { name: 'https://ex.test/f.js', startTime: rel(301), duration: dur(1), initiatorType: 'script', workerStart: rel(300.5), decodedBodySize: 2 ** 40 }, // > 2^32 varuint
+      { name: 'https://ex.test/g.mp4', startTime: rel(302), duration: dur(1), initiatorType: 'video', redirectStart: rel(290), redirectEnd: rel(295) },
+      { name: 'https://ex.test/a.js', startTime: rel(400), duration: dur(2), initiatorType: 'script' }, // duplicate URL (interning inside a column)
+    ],
+    // 9 interactions (columnar), deliberately NOT sorted by startTime, mixed optionals.
+    interactions: {
+      events: [
+        { name: 'pointerdown', startTime: rel(1000.1), duration: dur(50), processingStart: rel(1001), processingEnd: rel(1002), interactionId: 7, cancelable: true, target: { selector: 'button#buy' } },
+        { name: 'pointerup', startTime: rel(1050), duration: dur(20), interactionId: 7 },
+        { name: 'click', startTime: rel(1051), duration: dur(19), interactionId: 7, firstInput: true },
+        { name: 'keydown', startTime: rel(500), duration: dur(8) }, // out of order
+        { name: 'keyup', startTime: rel(560), duration: dur(4), cancelable: false },
+        { name: 'pointermove', startTime: rel(2000), duration: dur(16) },
+        { name: 'pointermove', startTime: rel(2016), duration: dur(16) },
+        { name: 'pointermove', startTime: rel(2032), duration: dur(16) },
+        { name: 'scroll', startTime: rel(1500), duration: dur(24), processingStart: rel(1501.5) }, // out of order again
+      ],
+    },
+    // Every rect wire path in one stream (counts < 8 → row-major structs; rects are leaf handlers).
+    cls: {
+      shifts: [
+        {
+          startTime: rel(700),
+          value: 0.0123,
+          hadRecentInput: false,
+          sources: [
+            // integer, DOMRect-consistent → derived + zigzag path
+            { node: { selector: 'div.hero' }, previousRect: { x: 10, y: 20, width: 300, height: 40, top: 20, right: 310, bottom: 60, left: 10 }, currentRect: { x: 10, y: 120, width: 300, height: 40, top: 120, right: 310, bottom: 160, left: 10 } },
+            // fractional, consistent → derived + f64 values
+            { previousRect: { x: 10.5, y: 20.25, width: 300.125, height: 40.75, top: 20.25, right: 310.625, bottom: 61, left: 10.5 }, currentRect: { x: 123.456789, y: 0, width: 10, height: 10, top: 0, right: 133.456789, bottom: 10, left: 123.456789 } },
+          ],
+        },
+        {
+          startTime: rel(710),
+          value: 0.2,
+          hadRecentInput: true,
+          lastInputTime: rel(650),
+          sources: [
+            // negative width/height but spec-consistent (left/top are the min side) → derived
+            { previousRect: { x: 100, y: 10, width: -50, height: -4, top: 6, right: 100, bottom: 10, left: 50 }, currentRect: { x: -0, y: 0, width: 5, height: 5, top: 0, right: 5, bottom: 5, left: -0 } }, // -0 must survive (f64 path)
+            // hand-built INCONSISTENT rect → verbatim 8-value fallback (synthetic; browsers can't emit this)
+            { currentRect: { x: 0, y: 0, width: 10, height: 10, top: 999, right: 1, bottom: 2, left: 3 } },
+          ],
+        },
+      ],
+    },
+    // 8 errors → columnar with very ragged string presence.
+    errors: {
+      errors: [
+        { startTime: rel(10), kind: 'error', name: 'TypeError', message: 'x is not a function', source: 'https://ex.test/a.js', lineno: 10, colno: 5, stack: 'TypeError: x is not a function\n    at a.js:10:5' },
+        { startTime: rel(20), kind: 'error' },
+        { startTime: rel(15), kind: 'unhandledrejection', message: 'boom' }, // out of order
+        { startTime: rel(30), kind: 'error', lineno: 1 },
+        { startTime: rel(40), kind: 'error', name: 'RangeError' },
+        { startTime: rel(50), kind: 'unhandledrejection', stack: 'at z' },
+        { startTime: rel(60), kind: 'error', source: 'https://ex.test/b.css' },
+        { startTime: rel(70), kind: 'error', colno: 2 },
+      ],
+    },
+    // 8 marks (columnar with JSON details present/absent) + 2 measures (row path beside it).
+    userTiming: {
+      marks: [
+        { name: 'm0', startTime: rel(1) },
+        { name: 'm1', startTime: rel(2), detail: { step: 1 } },
+        { name: 'm2', startTime: rel(3) },
+        { name: 'm3', startTime: rel(1.5), detail: null }, // out of order + null detail inside a column
+        { name: 'm4', startTime: rel(5), detail: [1, 'two', false] },
+        { name: 'm5', startTime: rel(6) },
+        { name: 'm6', startTime: rel(7), detail: 'plain' },
+        { name: 'm7', startTime: rel(8) },
+      ],
+      measures: [
+        { name: 'span-a', startTime: rel(1), duration: dur(4.25) },
+        { name: 'span-b', startTime: rel(2), duration: dur(0) },
+      ],
+    },
+    // 7 visibility states — one BELOW the columnar threshold, pinning the row path at the boundary.
+    visibility: {
+      states: [
+        { state: 'visible', startTime: rel(0) },
+        { state: 'hidden', startTime: rel(100) },
+        { state: 'visible', startTime: rel(200) },
+        { state: 'hidden', startTime: rel(300) },
+        { state: 'visible', startTime: rel(400) },
+        { state: 'hidden', startTime: rel(500) },
+        { state: 'visible', startTime: rel(600) },
+      ],
+    },
+    // 8 long tasks → columnar with a nested struct ARRAY (attribution) inside a column.
+    longTasks: {
+      tasks: [
+        { startTime: rel(100), duration: dur(60), attribution: [{ name: 'script', containerType: 'window' }] },
+        { startTime: rel(200), duration: dur(55) },
+        { startTime: rel(300), duration: dur(51), attribution: [] }, // empty-but-present array in a column
+        { startTime: rel(400), duration: dur(120), attribution: [{ containerSrc: 'https://ex.test/frame.html' }, { containerId: 'ad-slot' }] },
+        { startTime: rel(500), duration: dur(50) },
+        { startTime: rel(600), duration: dur(75) },
+        { startTime: rel(700), duration: dur(90) },
+        { startTime: rel(800), duration: dur(102) },
+      ],
+    },
+  },
+};
+
+// ── 11. coarseGrid — every tick on a 100µs grid → the v3 tick-scale prelude kicks in (scale 100) ────
+// Firefox/Safari coarsen timers far more than Chrome; this SYNTHETIC capture models a coarse clock so
+// the GCD-scale path is pinned by round-trip. 12.3ms and 45.7ms force gcd == exactly 100 (123 and 457
+// share no factor). The profile slice-start column participates in the same grid.
+const coarseGrid: Capture = {
+  formatVersion: FORMAT_VERSION,
+  manifest: {
+    clock: { timeOrigin: epo(1782684971154.1), captureStart: rel(0), captureEnd: rel(6000), unit: 'ms', base: 'timeOrigin' },
+    streams: streamManifest('not-requested', {
+      userTiming: present('userTiming'),
+      visibility: present('visibility'),
+      profile: present('profile', { provenance: { api: 'js-self-profiling' } }),
+    }),
+    config: defaultConfig,
+  },
+  streams: {
+    userTiming: {
+      marks: [{ name: 'coarse', startTime: rel(12.3) }],
+      measures: [{ name: 'work', startTime: rel(45.7), duration: dur(120.5) }],
+    },
+    visibility: { states: [{ state: 'visible', startTime: rel(0) }, { state: 'hidden', startTime: rel(5000.1) }] },
+    profile: {
+      frames: [{ name: 'main' }, { name: 'tick' }],
+      resources: [],
+      slices: [
+        { frameId: 0, depth: 0, start: rel(100.2), duration: dur(40) },
+        { frameId: 1, depth: 1, start: rel(110.4), duration: dur(20) },
+        { frameId: 0, depth: 0, start: rel(1000.8), duration: dur(10) },
+      ],
+      droppedSamples: 2,
+      sampleIntervalMs: dur(10),
+    },
+  },
+};
+
 export interface NamedFixture {
   name: string;
   capture: Capture;
@@ -697,6 +868,8 @@ export const fixtures: NamedFixture[] = [
   { name: 'minimalEmpty', capture: minimalEmpty },
   { name: 'profileHeavy', capture: profileHeavy },
   { name: 'customAndMeta', capture: customAndMeta },
+  { name: 'wireStressV3', capture: wireStressV3 },
+  { name: 'coarseGrid', capture: coarseGrid },
 ];
 
 /** Convenience: fixtures used by tests that want maximum stream/field coverage or the sample hot path. */

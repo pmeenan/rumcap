@@ -15,7 +15,7 @@ the code wins and this doc is the bug — a stale contract must be fixed (see [A
 
 ```
 [ magic: F5 52 55 4D ]          cleartext, 4 bytes — identify + sniff without decompressing
-[ codecVersion: varuint ]       currently 2   (v2: self-describing manifest stream records)
+[ codecVersion: varuint ]       currently 3   (v3: tick scale + delta chains + columnar arrays)
 [ formatVersion: varuint ]      currently 2   (Capture.formatVersion)
 [ gzip( body ) ]                everything below is gzipped as one stream
 ```
@@ -24,10 +24,11 @@ The magic and both versions live **outside** the gzip, so a reader can identify 
 it before spending anything on decompression. The **codec version is the hard gate** (it versions the
 framing rules themselves — an unknown value means the sections can't even be walked); the **format
 version does not gate reads** — see [Reading across versions](#reading-across-versions). `body` is a
-sequence of length-prefixed, tagged sections:
+one-varuint prelude — the [tick scale](#tick-scale-the-capture-wide-grid) — followed by a sequence of
+length-prefixed, tagged sections:
 
 ```
-body = section*
+body = [ tickScale: varuint ] section*
 section = [ tag: u8 ][ byteLength: varuint ][ payload ]
 ```
 
@@ -69,15 +70,36 @@ Absent optional sections (overhead, metadata) and absent streams cost zero bytes
 
 ### Timestamp precision (fixed-point microseconds)
 
-Timeline values (`RelMs` / `DurationMs`) are stored as **integer-microsecond zigzag varints**, not
-`f64`. Browsers coarsen `DOMHighResTimeStamp` to 100µs by default and 5µs at best (cross-origin
-isolated), so 1µs captures all real precision; the extra `f64` digits are float noise. This is ~2–4
-bytes vs 8, makes delta encoding trivial, and `round(ms·1000)/1000` recovers the canonical double
-exactly for any ≤1µs value (re-packing is idempotent). Wall-clock `EpochMs` and true floats stay `f64`.
+Timeline values (`RelMs` / `DurationMs`) are stored as **integer-microsecond ticks**, not `f64`.
+Browsers coarsen `DOMHighResTimeStamp` to 100µs by default and 5µs at best (cross-origin isolated), so
+1µs captures all real precision; the extra `f64` digits are float noise. This is ~1–4 bytes vs 8, makes
+delta encoding trivial, and `round(ms·1000)/1000` recovers the canonical double exactly for any ≤1µs
+value (re-packing is idempotent). Wall-clock `EpochMs` and true floats stay `f64`.
 
 **The one exception:** inferred **profile-slice durations** are stored on a **1ms** grid, because a
 sampling profiler can only place a duration to ±1 sample interval (~10ms) — microseconds there would be
 false precision. Measured durations elsewhere (resources, LoAF, **custom events**) keep full µs.
+(Because they are not µs ticks, slice durations are also exempt from the tick scale below.)
+
+### Tick scale (the capture-wide grid)
+
+The body prelude is a single varuint: the **GCD of every µs tick in the capture**, measured by the
+encoder in a probe pass — never assumed. Every stored tick (both `R`/`D` values and the profile
+slice-start column) is **divided by it on write and multiplied back on read**, which is exact by
+construction. Real captures sit on per-capture grids (the corpus alone spans 1µs, 5µs and 100µs
+depending on isolation state, and coarse-clock browsers quantize more aggressively), so a coarse
+capture's timestamps shrink by roughly the log of its grid; a full-resolution capture writes scale `1`
+and pays exactly one byte. A scale of `0` is corrupt and rejected.
+
+### Timestamp delta chains
+
+`R` (`RelMs`) values are written as **zigzag deltas from the previous `R` value in the same encoder
+scope**, starting from 0. A scope is one section, one manifest-record tail, or one column of a columnar
+array — exactly the spans that are length-prefixed or independently ordered, so every scope decodes
+standalone. Timeline points within a scope are near-sorted (entry lists arrive in time order; the
+timestamps inside a resource follow the fetch phases), so deltas are small — zigzag keeps occasional
+regressions cheap. `D` (`DurationMs`) values are magnitudes, not points: they stay absolute (they are
+already small numbers).
 
 ## String table
 
@@ -130,13 +152,46 @@ is a compact table of `[requiredCount, key, type, …]` and one generic walker e
 interpreting it (`src/codec/descriptors.ts` + the two walkers). Required fields are written
 unconditionally; optionals ride a presence bitmap.
 
+### Struct arrays: row-major below 8 entries, column-major at 8+
+
+An array of structs writes its count, then chooses its layout **from the count alone** (no flag byte;
+both sides apply the same `COLUMNAR_MIN = 8` rule):
+
+- **< 8 entries** — row-major: each struct as `[required fields][presence bitmap][present optionals]`.
+- **≥ 8 entries** — column-major: first one **transposed presence bit-column per optional field**
+  (entry *j*'s bit inside field *i*'s column; each column padded to whole bytes), then **every field as
+  a contiguous column** holding just the entries that have it. Same-field values sit side by side —
+  statuses repeat, sizes share magnitude, presence runs are uniform — which is worth ~10% post-gzip on
+  entry-heavy captures. Each column is its own `R`-chain scope, so a sorted `startTime` column becomes
+  a run of tiny deltas. Below 8 the transposed padding (one byte minimum per optional field) can exceed
+  the row form on wide structs like ResourceTiming, which is where the threshold sits.
+
 A few shapes a flat table can't express use small special-handler tags in the descriptor table (so the
 stream table stays total — every stream id has a descriptor):
 
 - **`navigation`** — a resource block followed by a navigation-extras block, one object (it
   specializes `resource`); `notRestoredReasons` within it is a recursive, null-discriminated tree.
 - **config `streams` / overhead `byStream`** — sparse `Record<streamIndex, value>` maps.
+- **rects** (layout-shift sources) — 4 stored values + spec-derived edges (below).
 - **`profile` slices** — columnar (below).
+
+### Rects — derived edges, integer fast path
+
+All 8 `Rect` fields are required in the model, but a `DOMRectReadOnly` defines its edges as
+`left/top = min(x, x+width)/(y, y+height)` and `right/bottom` as the max — so browsers can only produce
+rects whose edges are **derivable**. The wire exploits that:
+
+```
+rect = [ flags: u8 ] value*        flags bit0 = derived; bits 1-4 = x/y/width/height integer flags
+     | [ 00 ][ intBitmap: u8 ] value*   fallback: all 8 values verbatim (x,y,w,h,top,right,bottom,left)
+```
+
+When the encoder verifies (via `Object.is`, so `NaN`/`-0` stay honest) that the edges equal the spec
+derivation, only `x/y/width/height` are stored and the decoder recomputes the rest **with the same
+float ops — bit-exact, nothing synthesized**. Each stored value is a zigzag varint when integer-valued
+(CSS-pixel rects usually are; `-0` deliberately fails the integer test so `f64` preserves its sign) and
+an `f64` otherwise. A typical integer rect is ~6 bytes instead of 64; a hand-built inconsistent rect
+still round-trips exactly through the verbatim fallback.
 
 ### `profile` — columnar slices
 
@@ -147,8 +202,10 @@ gzip models each separately:
 
 1. **frameId** — index into the interned `frames` table (raw varint).
 2. **depth** — zigzag delta from the previous slice (pre-order depths move ±1, so deltas are tiny).
-3. **start** — first absolute µs tick, then non-negative µs deltas (pre-order ⇒ non-decreasing).
-4. **duration** — **1ms units** (durations are sample-inferred; see the precision note above).
+3. **start** — first absolute µs tick, then non-negative µs deltas (pre-order ⇒ non-decreasing), each
+   divided by the capture's tick scale like every other tick.
+4. **duration** — **1ms units** (durations are sample-inferred; see the precision note above). Not µs
+   ticks, so never scaled.
 
 Nesting is implicit from depth + pre-order, so no parent id is stored and the per-sample form's interned
 `stacks` table is gone entirely. An aggregate `droppedSamples` count records sub-interval runs the fold
@@ -170,9 +227,12 @@ nesting explicitly; `details` is a `JsonValue`.
 - **`CODEC_VERSION`** (wire framing) and **`FORMAT_VERSION`** (schema/model) are independent; per-stream
   `schemaVersion` lives in each manifest record's frame. Pre-1.0 the format is a **draft**: it may
   change without migration shims while the schema is validated against real captures.
-- **codec v2 (current)** made the manifest stream records self-describing (count + per-record frame +
-  length-prefixed tail) so cross-version reading is sound. **format v2 (current)** added the `METADATA`
-  section and the `customEvents` stream.
+- **codec v2** made the manifest stream records self-describing (count + per-record frame +
+  length-prefixed tail) so cross-version reading is sound. **codec v3 (current)** is a measured size
+  pass (−14.5% post-gzip over the sample corpus, −13…−18% per capture): the tick-scale body prelude,
+  per-scope `R` delta chains, column-major struct arrays at 8+ entries with transposed presence, and
+  the derived-edge rect encoding. **format v2 (current)** added the `METADATA` section and the
+  `customEvents` stream.
 
 ### Reading across versions
 

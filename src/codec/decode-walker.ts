@@ -4,19 +4,21 @@
  * older/newer struct layout can't drift between the two sides. Runs in tooling, never on a user's page.
  */
 
-import { FieldDecoder, Reader, decodeJson, fromTicks } from './field-decoder.js';
+import { FieldDecoder, decodeJson, fromTicks } from './field-decoder.js';
 import {
   S, R, D, U, F, B, J, SA,
-  NRR, SMAP, OMAP, PSLICES, NAV,
+  NRR, SMAP, OMAP, PSLICES, NAV, RECTT,
   bad,
   STREAM_CONFIG, OVERHEAD_ENTRY,
   CLOCK, STREAM_MANIFEST_REST, CONFIG, OVERHEAD, RESOURCE, NAV_EXTRA, STREAM_T,
   type Desc, type NrrNode,
 } from './descriptors.js';
+import { COLUMNAR_MIN } from './constants.js';
 import { STREAM_IDS, type StreamId } from '../registry.js';
 import { FORMAT_VERSION } from '../version.js';
 import type { Manifest, StreamManifestEntry } from '../manifest.js';
 import type { OverheadReport } from '../capture.js';
+import type { Rect } from '../streams/index.js';
 
 // ── Generic walker ──────────────────────────────────────────────────────────────────────────────────
 
@@ -36,6 +38,7 @@ function dfield(d: FieldDecoder, t: unknown): unknown {
     if (t === SMAP) return decStreamMap(d, STREAM_CONFIG);
     if (t === OMAP) return decStreamMap(d, OVERHEAD_ENTRY);
     if (t === PSLICES) return decSlices(d);
+    if (t === RECTT) return decRect(d);
     if (t === NAV) {
       // navigation mirror: the resource-shaped base block, then the navigation extras, one object.
       const base = decStruct(d, RESOURCE);
@@ -47,6 +50,8 @@ function dfield(d: FieldDecoder, t: unknown): unknown {
   } else {
     const elem = (t as Desc)[0] as Desc;
     const n = d.varuint();
+    // Row-vs-columnar is derived from the count alone — the same COLUMNAR_MIN rule the encoder used.
+    if (n >= COLUMNAR_MIN) return decColumnar(d, n, elem);
     const arr: unknown[] = new Array<unknown>(n);
     for (let i = 0; i < n; i++) arr[i] = decStruct(d, elem); // array of struct
     return arr;
@@ -65,7 +70,49 @@ function decStruct(d: FieldDecoder, desc: Desc): Record<string, unknown> {
   return o;
 }
 
+/** Column-major struct array — the mirror of encColumnar: transposed presence bit-columns for the
+ *  optional fields, then each field as a contiguous column (own R-chain scope via chainSwap). */
+function decColumnar(d: FieldDecoder, n: number, desc: Desc): Array<Record<string, unknown>> {
+  const rc = desc[0] as number;
+  const m = (desc.length - 1) >> 1;
+  const out: Array<Record<string, unknown>> = new Array<Record<string, unknown>>(n);
+  for (let i = 0; i < n; i++) out[i] = {};
+  const flags: boolean[][] = [];
+  for (let i = rc; i < m; i++) flags.push(d.presence(n));
+  for (let i = 0; i < m; i++) {
+    const k = desc[1 + 2 * i] as string;
+    const t = desc[2 + 2 * i];
+    const col = i >= rc ? flags[i - rc] : undefined;
+    const outer = d.chainSwap();
+    for (let j = 0; j < n; j++) {
+      if (col === undefined || col[j]) out[j]![k] = dfield(d, t);
+    }
+    d.chainSwap(outer);
+  }
+  return out;
+}
+
 // ── Special handlers (mirror of encode-walker) ──────────────────────────────────────────────────────
+
+/** Rect — the mirror of encRect. When the derived bit is set, the four edges are recomputed with the
+ *  exact DOMRectReadOnly definitions (same float ops as the encoder's equality check → bit-exact). */
+function decRect(d: FieldDecoder): Rect {
+  const flags = d.u8();
+  const derived = (flags & 1) !== 0;
+  const bm = derived ? flags >> 1 : d.u8(); // mirror of encRect's flag packing
+  const n = derived ? 4 : 8;
+  const v: number[] = new Array<number>(n);
+  for (let i = 0; i < n; i++) v[i] = (bm >> i) & 1 ? d.zigzag() : d.f64();
+  const [x, y, width, height] = v as [number, number, number, number];
+  if (!derived) return { x, y, width, height, top: v[4]!, right: v[5]!, bottom: v[6]!, left: v[7]! };
+  return {
+    x, y, width, height,
+    top: Math.min(y, y + height),
+    right: Math.max(x, x + width),
+    bottom: Math.max(y, y + height),
+    left: Math.min(x, x + width),
+  };
+}
 
 function decNrr(d: FieldDecoder): NrrNode {
   const p = d.presence(6);
@@ -121,7 +168,7 @@ function decSlices(d: FieldDecoder): Array<{ frameId: number; depth: number; sta
   }
   let acc = 0;
   for (let i = 0; i < n; i++) {
-    acc = i === 0 ? d.varuint() : acc + d.varuint();
+    acc += d.tickDelta(); // scaled µs deltas; the first is absolute (acc starts at 0)
     start[i] = acc;
   }
   for (let i = 0; i < n; i++) duration[i] = d.varuint();
@@ -157,7 +204,7 @@ export function decodeManifest(d: FieldDecoder, fileFormatVersion: number): Mani
     const id = STREAM_IDS[idx];
     if (id === undefined) continue; // future stream — frame consumed, record skipped whole
     const entry: Record<string, unknown> = { status, schemaVersion };
-    const tail = new FieldDecoder(new Reader(tailBytes), d.strings);
+    const tail = d.sub(tailBytes); // fresh chain scope, inherited scale — mirror of the encode tail
     if (fileFormatVersion <= FORMAT_VERSION) {
       // Same-or-older file: the tail layout is fully known — a mis-sized tail is corruption.
       Object.assign(entry, decStruct(tail, STREAM_MANIFEST_REST));

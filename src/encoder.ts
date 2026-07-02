@@ -414,7 +414,7 @@ export class Encoder {
 
   // ── internals ────────────────────────────────────────────────────────────────────────────────────
   #assertOpen(): void {
-    if (this.#finalized) throw new Error('Encoder already finished — no more events can be fed');
+    if (this.#finalized) throw new Error('Encoder already finished');
   }
 
   #finalize(): void {

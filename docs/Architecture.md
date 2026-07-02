@@ -67,9 +67,12 @@ provenance), then the embedded capture-config. Totality is the whole point — a
   carries no decoder. Shared *data* (the `Desc` tables, section-tag constants) lives in modules both
   sides import, which is what makes encode/decode unable to drift; the stream table is total, so every
   stream id has a descriptor by construction. A few shapes a flat table can't express (navigation's
-  two-block payload, the recursive `notRestoredReasons` tree, sparse maps, columnar profile slices) are
-  special-handler *tags* in those same tables. `sniff` reads the cleartext magic + versions without
-  decompressing, for tooling that routes files. See [FileFormat.md](FileFormat.md).
+  two-block payload, the recursive `notRestoredReasons` tree, sparse maps, derived-edge rects, columnar
+  profile slices) are special-handler *tags* in those same tables. Size levers are measured, not
+  assumed (codec v3): a probe pass finds the capture's real tick grid (its GCD) and every timestamp is
+  a scaled per-scope delta; struct arrays go column-major at 8+ entries so gzip models each field's
+  column separately. `sniff` reads the cleartext magic + versions without decompressing, for tooling
+  that routes files. See [FileFormat.md](FileFormat.md).
 - **`Encoder`** (`src/encoder.ts`) — the streaming "rumcap instance": feed methods per stream, stack-based
   custom-event timelines (depth from the call stack, duration from begin→end), the incremental profiler
   fold, then `finish()` → bytes (cached — double-save paths re-use them). Accumulates the `Capture`

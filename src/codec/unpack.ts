@@ -42,43 +42,21 @@ function decodeStreamInto(d: FieldDecoder, streams: Streams, manifest: Manifest)
 
 // ── gunzip wrapper ─────────────────────────────────────────────────────────────────────────────────
 
-async function collect(stream: ReadableStream<Uint8Array>): Promise<Uint8Array> {
-  const reader = stream.getReader();
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    total += value.length;
-  }
-  const out = new Uint8Array(total);
-  let offset = 0;
-  for (const c of chunks) {
-    out.set(c, offset);
-    offset += c.length;
-  }
-  return out;
-}
-
 /**
- * Run `input` through a decompression transform. (Duplicated from `pack.ts` on purpose — sharing it
- * would pull `CompressionStream` into the decode bundle and, worse, `DecompressionStream` into the
- * encode one.) On a decode error (invalid gzip) both sides reject; `Promise.all` attaches a handler to
- * each, so neither is left as an unhandled rejection Node would surface after the caller has handled it.
+ * Run `input` through a decompression transform — `Response` drains the readable; see the encode-side
+ * twin in `pack.ts`. (Duplicated on purpose: sharing it would pull `CompressionStream` into the decode
+ * bundle and, worse, `DecompressionStream` into the encode one.) On a decode error (invalid gzip) both
+ * sides reject; `Promise.all` attaches a handler to each, so neither is left as an unhandled rejection
+ * Node would surface after the caller has handled it.
  */
 async function pump(
   input: Uint8Array,
   ts: { readable: ReadableStream<Uint8Array>; writable: WritableStream<BufferSource> },
 ): Promise<Uint8Array> {
   const writer = ts.writable.getWriter();
-  const readPromise = collect(ts.readable);
-  const writePromise = (async () => {
-    await writer.write(input as unknown as BufferSource);
-    await writer.close();
-  })();
-  const [, out] = await Promise.all([writePromise, readPromise]);
-  return out;
+  const writePromise = writer.write(input as unknown as BufferSource).then(() => writer.close());
+  const [buf] = await Promise.all([new Response(ts.readable).arrayBuffer(), writePromise]);
+  return new Uint8Array(buf);
 }
 
 const gunzip = (bytes: Uint8Array): Promise<Uint8Array> => pump(bytes, new DecompressionStream('gzip'));
@@ -105,6 +83,10 @@ export async function unpack(input: Uint8Array | ArrayBuffer): Promise<Capture> 
 
   const payload = await gunzip(bytes.subarray(head.pos));
   const r = new Reader(payload);
+  // v3 body prelude: the capture-wide µs-tick scale every R/D value (and slice-start delta) was
+  // divided by. Applied by every section decoder below (0 would be a corrupt divisor — reject).
+  const tickScale = r.varuint();
+  if (tickScale === 0) throw new Error('corrupt .rcap: tick scale must be >= 1');
 
   let strings: readonly string[] | undefined;
   let manifest: Manifest | undefined;
@@ -128,6 +110,7 @@ export async function unpack(input: Uint8Array | ArrayBuffer): Promise<Capture> 
       throw new Error('corrupt .rcap: string table must precede other sections');
     }
     const d = new FieldDecoder(new Reader(sectionBytes), strings);
+    d.scale = tickScale;
     switch (tag) {
       case SECTION_MANIFEST:
         if (manifest !== undefined) throw new Error('corrupt .rcap: duplicate manifest section');

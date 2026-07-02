@@ -9,7 +9,8 @@
  *   [ codecVersion: varuint ]         is unambiguously binary and sniffable by these bytes alone
  *   [ formatVersion: varuint ]        (the schema/model version carried by Capture.formatVersion)
  *   [ gzip( body ) ]                  everything below is gzipped as one stream
- *       body = a sequence of length-prefixed, tagged sections:
+ *       body = [ tickScale: varuint ]  the capture-wide µs-tick divisor (see probeScale), then
+ *              a sequence of length-prefixed, tagged sections:
  *         [ tag: u8 ][ byteLength: varuint ][ payload ]
  *
  * `pack` is async only because gzip (`CompressionStream`) is; the structural encode itself is
@@ -21,7 +22,7 @@
 import type { Capture } from '../capture.js';
 import type { Streams } from '../streams/index.js';
 import { STREAM_IDS } from '../registry.js';
-import { FieldEncoder, Writer, StringTable, encodeJson } from './field-encoder.js';
+import { FieldEncoder, GcdProbe, Writer, StringTable, encodeJson } from './field-encoder.js';
 import { STREAM_INDEX } from './descriptors.js';
 import { encodeManifest, encodeOverhead, encodeStream } from './encode-walker.js';
 import {
@@ -34,10 +35,8 @@ import {
   SECTION_METADATA,
 } from './constants.js';
 
-interface Section {
-  tag: number;
-  bytes: Uint8Array;
-}
+/** A pending body section: [tag, payload]. */
+type Section = [number, Uint8Array];
 
 function writeSection(w: Writer, tag: number, payload: Uint8Array): void {
   w.u8(tag);
@@ -50,59 +49,57 @@ function writeSection(w: Writer, tag: number, payload: Uint8Array): void {
  * produce a section — an absent stream costs nothing; its status lives in the manifest. (`Streams`
  * keys ARE the StreamIds, so iterating STREAM_IDS covers them exactly.)
  */
-function encodeStreamSections(strings: StringTable, s: Streams, out: Section[]): void {
+function encodeStreamSections(strings: StringTable, scale: number, s: Streams, out: Section[]): void {
   for (const id of STREAM_IDS) {
     const data = s[id];
     if (data === undefined) continue;
     const e = new FieldEncoder(strings);
+    e.scale = scale;
     e.u8(STREAM_INDEX[id]);
     encodeStream(e, id, data);
-    out.push({ tag: SECTION_STREAM, bytes: e.w.finish() });
+    out.push([SECTION_STREAM, e.w.finish()]);
   }
+}
+
+/**
+ * Pass 1 of the two-pass encode: run the normal walk with the byte-less `GcdProbe` to learn the
+ * capture-wide tick grid (the GCD of every µs tick the real pass will write). Real Chrome captures sit
+ * on 1/5/100µs grids depending on isolation state — and the grid VARIES per capture, which is why the
+ * scale is measured, never assumed (AGENTS: no magic thresholds). Sharing the walker with the real
+ * pass is what guarantees no tick can be missed (a missed one would break the exact-division rule).
+ */
+function probeScale(capture: Capture): number {
+  const probe = new GcdProbe(new StringTable());
+  encodeManifest(probe, capture.manifest);
+  for (const id of STREAM_IDS) {
+    const data = capture.streams[id];
+    if (data !== undefined) encodeStream(probe, id, data);
+  }
+  if (capture.overhead !== undefined) encodeOverhead(probe, capture.overhead);
+  if (capture.metadata !== undefined) encodeJson(probe, capture.metadata);
+  return Math.max(1, probe.gcd); // all-zero ticks (or none) → no scaling
 }
 
 // ── gzip wrapper (CompressionStream is a Web API present in browsers and Node 18+) ─────────────────
 
-async function collect(stream: ReadableStream<Uint8Array>): Promise<Uint8Array> {
-  const reader = stream.getReader();
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    total += value.length;
-  }
-  const out = new Uint8Array(total);
-  let offset = 0;
-  for (const c of chunks) {
-    out.set(c, offset);
-    offset += c.length;
-  }
-  return out;
-}
-
 /**
- * Run `input` through a compression transform. We drain the readable concurrently with writing so the
- * transform never stalls on backpressure, then close the writer to flush. (The writer/reader form
- * avoids `pipeThrough`'s strict chunk-type inference, which rejects `WritableStream<BufferSource>`.)
- * This helper is deliberately duplicated in `unpack.ts` rather than shared, so the encode bundle never
- * imports `DecompressionStream`.
+ * Run `input` through a compression transform. `Response` drains the readable (it's the platform's
+ * own collect-a-stream primitive — present wherever CompressionStream is, and cheaper in bundle bytes
+ * than a hand-rolled reader loop); the write side runs concurrently so the transform never stalls on
+ * backpressure. `Promise.all` attaches a handler to both sides, so a failure on either rejects `pump`
+ * without leaving an unhandled rejection. This helper is deliberately duplicated in `unpack.ts` rather
+ * than shared, so the encode bundle never imports `DecompressionStream`.
  */
 async function pump(
   input: Uint8Array,
   ts: { readable: ReadableStream<Uint8Array>; writable: WritableStream<BufferSource> },
 ): Promise<Uint8Array> {
   const writer = ts.writable.getWriter();
-  const readPromise = collect(ts.readable);
-  const writePromise = (async () => {
-    // Our buffers are always ArrayBuffer-backed (we never allocate SharedArrayBuffer); the generic
-    // `Uint8Array<ArrayBufferLike>` default can't prove that to the BufferSource bound, so assert it.
-    await writer.write(input as unknown as BufferSource);
-    await writer.close();
-  })();
-  const [, out] = await Promise.all([writePromise, readPromise]);
-  return out;
+  // Our buffers are always ArrayBuffer-backed (we never allocate SharedArrayBuffer); the generic
+  // `Uint8Array<ArrayBufferLike>` default can't prove that to the BufferSource bound, so assert it.
+  const writePromise = writer.write(input as unknown as BufferSource).then(() => writer.close());
+  const [buf] = await Promise.all([new Response(ts.readable).arrayBuffer(), writePromise]);
+  return new Uint8Array(buf);
 }
 
 const gzip = (bytes: Uint8Array): Promise<Uint8Array> => pump(bytes, new CompressionStream('gzip'));
@@ -121,19 +118,22 @@ const gzip = (bytes: Uint8Array): Promise<Uint8Array> => pump(bytes, new Compres
  * and whose strings/JSON are already in that normal form (everything a browser produces).
  */
 export async function pack(capture: Capture): Promise<Uint8Array> {
+  const scale = probeScale(capture);
   const strings = new StringTable();
   const sections: Section[] = [];
 
   const manifestEnc = new FieldEncoder(strings);
+  manifestEnc.scale = scale;
   encodeManifest(manifestEnc, capture.manifest);
-  sections.push({ tag: SECTION_MANIFEST, bytes: manifestEnc.w.finish() });
+  sections.push([SECTION_MANIFEST, manifestEnc.w.finish()]);
 
-  encodeStreamSections(strings, capture.streams, sections);
+  encodeStreamSections(strings, scale, capture.streams, sections);
 
   if (capture.overhead !== undefined) {
     const overheadEnc = new FieldEncoder(strings);
+    overheadEnc.scale = scale;
     encodeOverhead(overheadEnc, capture.overhead);
-    sections.push({ tag: SECTION_OVERHEAD, bytes: overheadEnc.w.finish() });
+    sections.push([SECTION_OVERHEAD, overheadEnc.w.finish()]);
   }
 
   if (capture.metadata !== undefined) {
@@ -142,7 +142,7 @@ export async function pack(capture: Capture): Promise<Uint8Array> {
     // absent metadata costs nothing and an older reader skips it by its length prefix.
     const metaEnc = new FieldEncoder(strings);
     encodeJson(metaEnc, capture.metadata);
-    sections.push({ tag: SECTION_METADATA, bytes: metaEnc.w.finish() });
+    sections.push([SECTION_METADATA, metaEnc.w.finish()]);
   }
 
   // The table is complete only now that every section has interned its strings; serialize it and place
@@ -151,8 +151,9 @@ export async function pack(capture: Capture): Promise<Uint8Array> {
   strings.encode(tableW);
 
   const body = new Writer();
+  body.varuint(scale); // v3 body prelude: the capture-wide µs-tick scale every R/D value was divided by
   writeSection(body, SECTION_STRING_TABLE, tableW.finish());
-  for (const s of sections) writeSection(body, s.tag, s.bytes);
+  for (const [tag, bytes] of sections) writeSection(body, tag, bytes);
 
   const compressed = await gzip(body.finish());
 

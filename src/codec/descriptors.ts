@@ -42,6 +42,7 @@ export const SMAP = 'm'; // CaptureConfig.streams: Partial<Record<StreamId, Stre
 export const OMAP = 'o'; // OverheadReport.byStream: Partial<Record<StreamId, {...}>>
 export const PSLICES = 'q'; // SliceProfile.slices: columnar (frameId / depth / start-delta / duration)
 export const NAV = 'v'; // navigation payload: RESOURCE block + NAV_EXTRA block, one object on both sides
+export const RECTT = 'r'; // Rect: 4 stored values + spec-derived edges (see the walkers' rect handlers)
 
 export type Desc = readonly unknown[];
 
@@ -65,11 +66,14 @@ export function bad(t: unknown): never {
 // ── Descriptors (leaf → composite). Field order MUST match the wire output byte-for-byte. ───────────
 
 const ELEMENT: Desc = [0, 'selector', S];
-const RECT: Desc = [8, 'x', F, 'y', F, 'width', F, 'height', F, 'top', F, 'right', F, 'bottom', F, 'left', F];
+// Rect is a special-handler tag (RECTT), not a flat Desc: all 8 model fields are required, but the
+// wire stores only x/y/width/height when the edges match DOMRectReadOnly's definitions (top/left =
+// min, bottom/right = max — https://drafts.fxtf.org/geometry/#dom-domrectreadonly-domrectreadonly-top)
+// and rebuilds the rest with the same float ops, which is exact. See encRect/decRect.
 const SERVER_TIMING: Desc = [1, 'name', S, 'duration', D, 'description', S];
 const PAINT_TIME: Desc = [1, 'startTime', R, 'paintTime', R, 'presentationTime', R];
 const LCP_ENTRY: Desc = [2, 'startTime', R, 'size', U, 'renderTime', R, 'loadTime', R, 'paintTime', R, 'presentationTime', R, 'id', S, 'url', S, 'element', ELEMENT];
-const SHIFT_SOURCE: Desc = [0, 'node', ELEMENT, 'previousRect', RECT, 'currentRect', RECT];
+const SHIFT_SOURCE: Desc = [0, 'node', ELEMENT, 'previousRect', RECTT, 'currentRect', RECTT];
 const LAYOUT_SHIFT: Desc = [3, 'startTime', R, 'value', F, 'hadRecentInput', B, 'lastInputTime', R, 'sources', [SHIFT_SOURCE]];
 const ELEMENT_TIMING: Desc = [1, 'startTime', R, 'identifier', S, 'url', S, 'renderTime', R, 'loadTime', R, 'naturalWidth', U, 'naturalHeight', U, 'element', ELEMENT];
 const INTERACTION: Desc = [3, 'name', S, 'startTime', R, 'duration', D, 'processingStart', R, 'processingEnd', R, 'interactionId', U, 'cancelable', B, 'firstInput', B, 'target', ELEMENT];

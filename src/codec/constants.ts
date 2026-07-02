@@ -10,8 +10,12 @@ export const MAGIC: Readonly<Uint8Array> = new Uint8Array([0xf5, 0x52, 0x55, 0x4
 
 /** Wire/codec version, independent of the schema `FORMAT_VERSION`. Bumped only on a wire-layout change.
  *  v2: manifest stream records became self-describing frames ([index][status][schemaVersion][len][rest])
- *  so readers can pull what they know from newer files — see FileFormat.md "Reading across versions". */
-export const CODEC_VERSION = 2;
+ *  so readers can pull what they know from newer files — see FileFormat.md "Reading across versions".
+ *  v3: measured size pass (corpus: −14.5% post-gzip) — a capture-wide tick-scale prelude (the GCD of
+ *  all µs ticks, so coarse-clock captures shrink), R values delta-chained per encoder scope, struct
+ *  arrays ≥ COLUMNAR_MIN stored column-major with transposed presence, and rects packed as 4 values
+ *  with spec-derived edges. See FileFormat.md. */
+export const CODEC_VERSION = 3;
 
 /** Canonical file extension for a packed capture — the ONE place the short name survives; the
  *  package, repo, and format are all named `rumcap`. */
@@ -24,6 +28,12 @@ export const SECTION_MANIFEST = 2;
 export const SECTION_STREAM = 3;
 export const SECTION_OVERHEAD = 4;
 export const SECTION_METADATA = 5; // capture-level metadata (arbitrary JSON); added in FORMAT_VERSION 2
+
+/** Struct arrays with at least this many entries encode column-major (see the walkers). A wire framing
+ *  rule, not a heuristic: both sides derive row-vs-columnar from the array count alone, so the choice
+ *  never needs a flag byte. Below the threshold the transposed presence padding (one byte minimum per
+ *  optional field) can exceed the row form on wide structs like ResourceTiming. */
+export const COLUMNAR_MIN = 8;
 
 // JsonValue codec discriminators (User Timing `detail`, custom-event `details`, capture `metadata`).
 // A 1-byte tag keeps `null` distinct from an absent field and preserves object/array/scalar shape.

@@ -53,20 +53,21 @@ environment **+ a full-session 10ms CPU profile**; regenerate with
 
 | page | timeline entries | profiler samples | browser `toJSON()` dump | dump gzipped | **`.rcap`** |
 |---|---:|---:|---:|---:|---:|
-| CNN live-news article | 159 | 779 | 225 KB | 19 KB | **6.9 KB** |
-| Google Finance | 274 | 864 | 339 KB | 26 KB | **10.8 KB** |
-| v0.app (React, deep stacks) | 259 | 1,803 | 1,055 KB | 60 KB | **10.7 KB** |
-| Etsy staff-picks | 421 | 879 | 519 KB | 37 KB | **18.8 KB** |
+| CNN live-news article | 159 | 779 | 225 KB | 19 KB | **6.0 KB** |
+| Google Finance | 274 | 864 | 339 KB | 26 KB | **8.8 KB** |
+| v0.app (React, deep stacks) | 259 | 1,803 | 1,055 KB | 60 KB | **9.1 KB** |
+| Etsy staff-picks | 421 | 879 | 519 KB | 37 KB | **16.3 KB** |
 
 Two honest comparisons are folded together there: gzipped JSON of the **identical** normalized model
-runs 10–25 KB on these pages — the `.rcap` binary codec (string interning, varints, fixed-point-µs
-timestamps, presence bitmaps, columnar slices) beats it by 23–48%. The bigger win is upstream of the
-codec: the raw dump carries the profiler's per-sample interned stacks (v0.app's alone is most of its
-megabyte), which `rumcap` folds on-page into the nested call-tree slices a viewer actually renders.
+runs 10–25 KB on these pages — the `.rcap` binary codec (string interning, delta-chained fixed-point-µs
+timestamps on a measured per-capture grid, columnar entry arrays, presence bitmaps, derived-edge rects)
+beats it by 33–57%. The bigger win is upstream of the codec: the raw dump carries the profiler's
+per-sample interned stacks (v0.app's alone is most of its megabyte), which `rumcap` folds on-page into
+the nested call-tree slices a viewer actually renders.
 
-On the page, the full encode surface (pack + streaming `Encoder` + profiler fold) is **~6.4 KB gzip**,
+On the page, the full encode surface (pack + streaming `Encoder` + profiler fold) is **~6.7 KB gzip**,
 zero dependencies; the browser-entry integration (`entrySink` + the normalizers) is opt-in and adds
-**~2.6 KB** only when imported.
+**~3.2 KB** only when imported.
 
 ## Why
 

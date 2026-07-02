@@ -163,9 +163,22 @@ export const toTicks = (ms: number): number => Math.round(ms * US_PER_MS);
  * `resources` and again in `lcp` is stored once. This per-section split is also the incremental seam:
  * a driver can finalize each stream's bytes as that stream completes and flush only the (cheap) string
  * table at pagehide — never a big synchronous pack at unload (AGENTS "no unload cliff").
+ *
+ * Codec v3 tick rules (both lossless; the corpus round-trip proves the mirrors):
+ *   - Every µs tick is divided by the capture-wide `scale` (the GCD of all ticks, from `GcdProbe`;
+ *     see pack.ts). Chrome captures sit on 1/5/100µs grids per capture; coarse-clock browsers coarsen
+ *     more. Division is exact by GCD construction.
+ *   - `R` (RelMs) values are CHAINED: each is written as the zigzag delta from the previous R value in
+ *     the same encoder scope (a section, a manifest-record tail, or a columnar column). Timeline points
+ *     within a scope are near-sorted, so deltas are small. Durations are magnitudes, not points — they
+ *     stay absolute (they're already small).
  */
 export class FieldEncoder {
   readonly w = new Writer();
+  /** µs-tick divisor (capture-wide GCD). pack() sets it after the probe pass; 1 = no scaling. */
+  scale = 1;
+  /** Chain state: the previous R tick written in THIS encoder's scope. */
+  private lastTick = 0;
   constructor(readonly strings: StringTable) {}
 
   u8(b: number): void {
@@ -180,13 +193,33 @@ export class FieldEncoder {
   f64(x: number): void {
     this.w.f64(x);
   }
-  /** A point on the page timeline (RelMs) as integer-µs ticks. */
+  /** A point on the page timeline (RelMs): scaled integer-µs ticks, zigzag delta from the previous R. */
   rel(x: RelMs): void {
-    this.w.zigzag(toTicks(x));
+    const t = toTicks(x);
+    this.w.zigzag((t - this.lastTick) / this.scale);
+    this.lastTick = t;
   }
-  /** A duration (DurationMs) as integer-µs ticks. */
+  /** A duration (DurationMs): scaled integer-µs ticks, absolute (not chained). */
   dur(x: DurationMs): void {
-    this.w.zigzag(toTicks(x));
+    this.w.zigzag(toTicks(x) / this.scale);
+  }
+  /** A non-negative µs tick delta (the columnar profile-slice start column), scaled. */
+  tickDelta(delta: number): void {
+    this.w.varuint(delta / this.scale);
+  }
+  /** Swap the R-chain state (columnar columns are independent delta sequences). Returns the previous
+   *  tick so the caller can restore the enclosing scope's chain afterwards. */
+  chainSwap(tick = 0): number {
+    const prev = this.lastTick;
+    this.lastTick = tick;
+    return prev;
+  }
+  /** A fresh sub-encoder sharing the table and scale, with its own chain scope — for length-prefixed
+   *  tails, which must decode standalone (the decoder mirrors with its own sub-decoder). */
+  sub(): FieldEncoder {
+    const e = new FieldEncoder(this.strings);
+    e.scale = this.scale;
+    return e;
   }
   bool(b: boolean): void {
     this.w.u8(b ? 1 : 0);
@@ -216,6 +249,52 @@ export class FieldEncoder {
 }
 
 /**
+ * Pass-1 probe for the capture-wide tick scale: the SAME walker runs over it (so it sees exactly the
+ * ticks the real encode will write — a missed path is structurally impossible), but every byte write is
+ * a no-op and only the GCD of |ticks| accumulates. Interning is skipped too: the real pass interns
+ * first-seen along the identical walk, so ids don't depend on the probe. Cost is one extra model
+ * traversal with no allocation — cheap next to gzip, and still O(n) (AGENTS "no unload cliff").
+ */
+export class GcdProbe extends FieldEncoder {
+  gcd = 0;
+
+  private acc(t: number): void {
+    // Euclid over (|t|, gcd-so-far). The identities gcd(x, 0) = x and gcd(0, g) = g make the first
+    // tick and zero ticks fall out of the loop with no special cases.
+    let a = Math.abs(t);
+    let b = this.gcd;
+    while (b !== 0) {
+      const r = a % b;
+      a = b;
+      b = r;
+    }
+    this.gcd = a;
+  }
+
+  override u8(): void {}
+  override varuint(): void {}
+  override zigzag(): void {}
+  override f64(): void {}
+  override bool(): void {}
+  override str(): void {}
+  override presence(): void {}
+  override rel(x: RelMs): void {
+    this.acc(toTicks(x));
+  }
+  override dur(x: DurationMs): void {
+    this.acc(toTicks(x));
+  }
+  override tickDelta(delta: number): void {
+    // GCD over first-value + deltas equals GCD over the raw values (gcd(a, b−a) = gcd(a, b)).
+    this.acc(delta);
+  }
+  /** Length-prefixed tails share this probe: lengths don't matter in pass 1, ticks do. */
+  override sub(): FieldEncoder {
+    return this;
+  }
+}
+
+/**
  * `JsonValue` encoder for User Timing `detail`, custom-event `details`, and capture `metadata`. Numbers
  * are stored as f64 (JSON numbers are doubles; this is lossless and payloads are small, so a tighter
  * int path isn't worth the branch). Keys are interned like any other string. Mirror: `decodeJson`.
@@ -239,23 +318,24 @@ function keepInObject(v: unknown): boolean {
 }
 
 function encodeJsonValue(e: FieldEncoder, v: unknown): void {
+  const ty = typeof v;
   // Order matters: the toJSON hook is consulted before the plain-object fallback, like JSON.stringify.
-  if (v === null || v === undefined || typeof v === 'function' || typeof v === 'symbol' || typeof v === 'bigint') {
+  if (v === null || v === undefined || ty === 'function' || ty === 'symbol' || ty === 'bigint') {
     e.u8(JSON_NULL); // array slots / top level: stringify's "not representable here" → null
   } else if (v === false) {
     e.u8(JSON_FALSE);
   } else if (v === true) {
     e.u8(JSON_TRUE);
-  } else if (typeof v === 'number') {
+  } else if (ty === 'number') {
     if (Number.isFinite(v)) {
       e.u8(JSON_NUMBER);
-      e.f64(v);
+      e.f64(v as number);
     } else {
       e.u8(JSON_NULL); // NaN/±Infinity are not JSON — stringify emits null
     }
-  } else if (typeof v === 'string') {
+  } else if (ty === 'string') {
     e.u8(JSON_STRING);
-    e.str(v);
+    e.str(v as string);
   } else if (Array.isArray(v)) {
     e.u8(JSON_ARRAY);
     e.varuint(v.length);

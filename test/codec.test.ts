@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { gzipSync } from 'node:zlib';
+import { gzipSync, gunzipSync } from 'node:zlib';
+import { createHash } from 'node:crypto';
 import {
   pack,
   unpack,
@@ -15,6 +16,9 @@ import {
   type StreamId,
 } from 'rumcap';
 import { fixtures, richChrome, minimalEmpty, profileHeavy } from './fixtures.js';
+
+/** The uncompressed body (after the 6-byte cleartext header) — what the byte-goldens pin. */
+const bodyOf = async (c: Capture): Promise<Uint8Array> => gunzipSync((await pack(c)).subarray(6));
 
 // The Phase-0 exit criterion: capture -> pack -> unpack -> DEEP EQUALITY on the golden corpus,
 // including the degraded/partial captures. pack/unpack are deterministic for a fixed input (nothing
@@ -213,6 +217,46 @@ describe('compactness', () => {
   });
 });
 
+// Codec v3 wire paths: the tick-scale prelude, R-value delta chains, columnar struct arrays, and the
+// derived-rect encoding. Round-trip equality across the corpus is the main proof (wireStressV3 and
+// coarseGrid live in the fixtures for exactly these paths); the checks here pin the wire-visible
+// details a smearing bug could hide.
+describe('codec v3 wire behaviors', () => {
+  it('writes the measured tick scale into the body prelude (coarseGrid → exactly 100)', async () => {
+    const coarse = fixtures.find((f) => f.name === 'coarseGrid')!.capture;
+    expect((await bodyOf(coarse))[0]).toBe(100); // 12.3ms and 45.7ms pin gcd to exactly 100 (123 ⊥ 457)
+    expect((await bodyOf(minimalEmpty))[0]).toBe(1); // µs-fine (fractional captureEnd) → no scaling
+  });
+
+  it('round-trips every rect path exactly: -0, floats, negative sizes, inconsistent fallback', async () => {
+    const stress = fixtures.find((f) => f.name === 'wireStressV3')!.capture;
+    const back = await unpack(await pack(stress));
+    const shifts = back.streams.cls!.shifts;
+    // Derived-int and derived-float rects (recomputed edges must be bit-exact).
+    expect(shifts[0]!.sources![0]!.previousRect).toEqual({ x: 10, y: 20, width: 300, height: 40, top: 20, right: 310, bottom: 60, left: 10 });
+    expect(shifts[0]!.sources![1]!.previousRect).toEqual({ x: 10.5, y: 20.25, width: 300.125, height: 40.75, top: 20.25, right: 310.625, bottom: 61, left: 10.5 });
+    // -0 must keep its sign (Object.is, not ==): it rides the f64 path, never zigzag.
+    const negZero = shifts[1]!.sources![0]!.currentRect!;
+    expect(Object.is(negZero.x, -0)).toBe(true);
+    expect(Object.is(negZero.left, -0)).toBe(true);
+    // The hand-built inconsistent rect survives verbatim via the fallback.
+    expect(shifts[1]!.sources![1]!.currentRect).toEqual({ x: 0, y: 0, width: 10, height: 10, top: 999, right: 1, bottom: 2, left: 3 });
+  });
+
+  // The exact wire layout, pinned. An INTENTIONAL wire change must update these goldens (and bump
+  // CODEC_VERSION + FileFormat.md); an accidental byte drift fails here first. The uncompressed body
+  // is asserted (not the gzip, whose bytes may vary across zlib builds).
+  it('byte-golden: minimalEmpty packs to the exact v3 body', async () => {
+    const body = await bodyOf(minimalEmpty);
+    expect(Array.from(body)).toEqual(MINIMAL_EMPTY_BODY);
+  });
+
+  it('byte-golden: the columnar/rect/chain stress capture hashes to the pinned v3 body', async () => {
+    const body = await bodyOf(fixtures.find((f) => f.name === 'wireStressV3')!.capture);
+    expect(createHash('sha256').update(body).digest('hex')).toBe(WIRE_STRESS_BODY_SHA256);
+  });
+});
+
 // Timeline timestamps are stored as fixed-point integer microseconds — a deliberate, documented
 // precision reduction (browsers only expose 5µs at best). It is lossless for any ≤1µs-resolution
 // value and idempotent thereafter; sub-µs float noise collapses onto the grid.
@@ -269,3 +313,18 @@ describe('manifest/payload consistency', () => {
 // A small explicit check that the public type is what consumers import (compile-time coverage).
 const _typecheck: (c: Capture) => Promise<Uint8Array> = pack;
 void _typecheck;
+
+// ── Byte-goldens (codec v3) ─────────────────────────────────────────────────────────────────────────
+// Regenerate on an INTENTIONAL wire change: gunzip pack(fixture).subarray(6) — see bodyOf above.
+// minimalEmpty, annotated: [tickScale=1][string table: 3 strings 'ms'/'timeOrigin'/'not-requested']
+// [manifest: clock f64+chained rels+strs+presence, 15 self-describing records, config][no streams].
+const MINIMAL_EMPTY_BODY: number[] = [
+  1, 1, 29, 3, 2, 109, 115, 10, 116, 105, 109, 101, 79, 114, 105, 103, 105, 110, 13, 110, 111, 116,
+  45, 114, 101, 113, 117, 101, 115, 116, 101, 100, 2, 91, 154, 33, 9, 223, 4, 241, 121, 66, 0, 0, 0,
+  1, 0, 15, 0, 2, 1, 1, 0, 1, 2, 1, 1, 0, 2, 2, 1, 1, 0, 3, 2, 1, 1, 0, 4, 2, 1, 1, 0, 5, 2, 1, 1,
+  0, 6, 2, 1, 1, 0, 7, 2, 1, 1, 0, 8, 2, 1, 1, 0, 9, 2, 1, 1, 0, 10, 2, 1, 1, 0, 11, 2, 1, 1, 0, 12,
+  2, 1, 1, 0, 13, 2, 1, 1, 0, 14, 2, 1, 1, 0, 1, 0,
+];
+// wireStressV3 exercises columnar arrays (transposed presence), every rect path, negative chain
+// deltas, and >2^32 varuints — 1192 body bytes, pinned by hash to keep this file readable.
+const WIRE_STRESS_BODY_SHA256 = '11c6f68d6f32bc1182b3f84f0f1ec805876ea3a1de9168b5fa34288ce5b81621';

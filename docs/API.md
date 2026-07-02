@@ -18,8 +18,10 @@ Three, so a page ships only what it uses:
 **Tree-shaking:** `rumcap/encode` imports **no decode code** — no `unpack`, no `DecompressionStream`.
 It's a physical split (separate modules + subpath exports), so the decoder can't reach a user's page
 even without a bundler. The core encode surface (pack + `Encoder` + `SliceBuilder`) bundles to
-**~6.4 KB gzip**; the browser-entry integration (`entrySink` + normalizers + `environmentSnapshot`) is
-itself tree-shakeable and adds **~2.6 KB** only if imported.
+**~6.7 KB gzip**; the browser-entry integration (`entrySink` + normalizers + `environmentSnapshot`) is
+itself tree-shakeable and adds **~3.2 KB** only if imported (the quickstart import set —
+`Encoder` + `entrySink` + `environmentSnapshot` — lands at ~9.3 KB). Measured with esbuild
+`--bundle --minify` + gzip -9; rolldown agrees within ~1%.
 
 ```bash
 npm install rumcap

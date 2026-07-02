@@ -34,8 +34,21 @@ including the degraded captures):
   `addProfilerChunk(trace, sampleIntervalMs?)` (no more mutating the browser's trace), cached
   `finish()`, `encoder.finished`, decode-side `sniff()`.
 - **Real size numbers** ([`samples/capture-tool/sizes.mjs`](../samples/capture-tool/sizes.mjs)) — full
-  captures incl. the 10ms profile: CNN 6.9 KB, Google Finance 10.8 KB, v0.app 10.7 KB (from a 1 MB raw
-  dump), Etsy 18.8 KB; 23–48% under gzipped JSON of the identical model. In the README.
+  captures incl. the 10ms profile: CNN 6.0 KB, Google Finance 8.8 KB, v0.app 9.1 KB (from a 1 MB raw
+  dump), Etsy 16.3 KB; 33–57% under gzipped JSON of the identical model. In the README.
+- **Codec v3 — the measured size pass (2026-07-01).** Built a byte-attribution + variant-packer harness
+  over the sample corpus (post-gzip is the metric; every candidate measured, several rejected), then
+  landed the four that pay: a capture-wide **tick-scale** body prelude (the GCD of all µs ticks —
+  measured per capture, never assumed; corpus grids span 1/5/100µs, coarse-clock browsers should gain
+  much more), per-scope **`R` delta chains**, **column-major struct arrays at ≥8 entries** with
+  transposed presence bit-columns, and **derived-edge rects** (4 stored values + `Object.is`-verified
+  spec derivation; integer fast path; verbatim fallback). Corpus: **−14.5% post-gzip** (−13…−18% per
+  capture). Measured-and-rejected: string-table sort orders (±0.3% = noise), frequency-remapped profile
+  frame ids (noise), split lengths/bytes string table (noise), JSON integer tag (zero corpus JSON
+  numbers — reconsider when custom-event details show up in real captures), table-driven Encoder feed
+  methods for bundle size (repetitive code gzips better than the table that replaces it). Encode bundle
+  cost of v3: ~+0.4 KB gzip (6.7 core / +3.2 browser layer) after offsetting trims (`Response`-based
+  stream drain, unified rect loops). Wire goldens now pin the exact v3 bytes in `codec.test.ts`.
 - **Demos** — [`examples/capture`](../examples/capture) (a page capturing itself — rewritten on
   `entrySink`, verified end-to-end in headless Chrome) and [`examples/extension`](../examples/extension)
   (a Chrome MV3 harness).

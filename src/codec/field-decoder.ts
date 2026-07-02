@@ -97,8 +97,14 @@ export function decodeStringTable(r: Reader): string[] {
 const US_PER_MS = 1000;
 export const fromTicks = (us: number): number => us / US_PER_MS;
 
-/** FieldDecoder = a `Reader` plus the already-decoded string table. The mirror of `FieldEncoder`. */
+/** FieldDecoder = a `Reader` plus the already-decoded string table. The mirror of `FieldEncoder`,
+ *  including the v3 tick rules: every tick was divided by the body's `scale` prelude, and R values are
+ *  zigzag deltas chained per decoder scope (a section, a manifest-record tail, a columnar column). */
 export class FieldDecoder {
+  /** µs-tick multiplier (the body prelude). unpack() sets it on every section decoder. */
+  scale = 1;
+  /** Chain state: the previous R tick decoded in THIS decoder's scope. */
+  private lastTick = 0;
   constructor(
     readonly r: Reader,
     readonly strings: readonly string[],
@@ -116,13 +122,33 @@ export class FieldDecoder {
   f64(): number {
     return this.r.f64();
   }
-  /** A page-timeline point (RelMs) decoded from integer-µs ticks. */
+  /** A page-timeline point (RelMs): scaled tick delta accumulated onto the scope's chain. */
   rel(): RelMs {
-    return fromTicks(this.r.zigzag()) as RelMs;
+    const t = this.r.zigzag() * this.scale + this.lastTick;
+    this.lastTick = t;
+    return fromTicks(t) as RelMs;
   }
-  /** A duration (DurationMs) decoded from integer-µs ticks. */
+  /** A duration (DurationMs): scaled ticks, absolute (not chained). */
   dur(): DurationMs {
-    return fromTicks(this.r.zigzag()) as DurationMs;
+    return fromTicks(this.r.zigzag() * this.scale) as DurationMs;
+  }
+  /** A non-negative µs tick delta (the columnar profile-slice start column), unscaled back to µs. */
+  tickDelta(): number {
+    return this.r.varuint() * this.scale;
+  }
+  /** Swap the R-chain state (columnar columns are independent delta sequences); returns the previous
+   *  tick for restoring the enclosing scope. Mirror of FieldEncoder.chainSwap. */
+  chainSwap(tick = 0): number {
+    const prev = this.lastTick;
+    this.lastTick = tick;
+    return prev;
+  }
+  /** A standalone decoder over length-prefixed tail bytes, inheriting table + scale with a fresh
+   *  chain scope. Mirror of FieldEncoder.sub. */
+  sub(bytes: Uint8Array): FieldDecoder {
+    const d = new FieldDecoder(new Reader(bytes), this.strings);
+    d.scale = this.scale;
+    return d;
   }
   bool(): boolean {
     return this.r.u8() !== 0;
