@@ -7,6 +7,10 @@
 export { unpack } from './codec/unpack.js';
 // Manifest-vs-payload consistency check for tests/tooling/ingest (not a hot path).
 export { checkConsistency } from './codec/validate.js';
+// Cleartext-header sniff: identify a `.rcap` (by magic, never extension) + read its versions without
+// decompressing — for tooling that routes/filters files.
+export { sniff } from './codec/sniff.js';
+export type { RcapHeader } from './codec/sniff.js';
 
 // ── The shared contract (constants + types; identical set on `rumcap/encode`) ──────────────────────
 export * from './contract.js';

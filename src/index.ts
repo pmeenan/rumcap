@@ -6,3 +6,5 @@
 export * from './encode.js';
 export { unpack } from './codec/unpack.js';
 export { checkConsistency } from './codec/validate.js';
+export { sniff } from './codec/sniff.js';
+export type { RcapHeader } from './codec/sniff.js';

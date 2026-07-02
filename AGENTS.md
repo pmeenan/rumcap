@@ -2,14 +2,18 @@
 
 `rumcap` is a small, dependency-free library for the **`.rcap`** capture format — a compact,
 self-describing binary format for real-user web-performance captures. It ships a streaming **encoder**
-and a separate, tree-shakeable **decoder** (npm package `rumcap`; the format/repo keep the shorter
-`rcap` name). This file is long-term project memory — keep it current.
+and a separate, tree-shakeable **decoder**. Package, GitHub repo (`pmeenan/rumcap`), and format are all
+named `rumcap`; the ONLY place the short name survives is the `.rcap` file extension. This file is
+long-term project memory — keep it current.
 
-The scope is deliberately narrow: **the format — encode and decode — and nothing else.** Capturing is
-brought by the consumer (the demos under `examples/` show how); viewing is delegated to
-[waterfall-tools](https://github.com/pmeenan/waterfall-tools). Earlier drafts scoped a broad
-multi-component pipeline (capture, transport, server, aggregate, transcode, viewer); that breadth was
-cut. Don't reintroduce it.
+The scope is deliberately narrow: **the format — encode and decode — plus the normalization from raw
+browser-API output onto the model (`src/browser.ts`: `entrySink` + the per-entry normalizers), and
+nothing else.** Normalization is format knowledge (sentinel stripping, spec-name mapping, dedup) and is
+stated once, in the library; capture *policy* — which observers to run, profiler lifecycle, sampling,
+transport, when to save — is brought by the consumer (the demos under `examples/` show how); viewing is
+delegated to [waterfall-tools](https://github.com/pmeenan/waterfall-tools). Earlier drafts scoped a
+broad multi-component pipeline (capture, transport, server, aggregate, transcode, viewer); that breadth
+was cut. Don't reintroduce it.
 
 ## Workflow (mandatory)
 
@@ -80,14 +84,18 @@ Before concluding a change:
 Single package at the repo root:
 
 - `src/` — the library. `codec/` is the binary encode/decode (split into shared `constants`/
-  `descriptors` + `field-encoder`/`encode-walker`/`pack` on the encode side and their decode mirrors);
-  `streams/` the per-stream models; `encoder.ts` the streaming `Encoder`; `profile-slices.ts` the
-  samples→slices fold. `encode.ts`/`decode.ts`/`index.ts` are the public barrels behind the `.`,
-  `./encode`, `./decode` exports; the constants/types both halves share are stated once in
-  `contract.ts`, which both barrels re-export.
-- `test/` — the golden-corpus round-trip suite (`fixtures.ts` + the `*.test.ts`).
+  `descriptors` + `field-encoder`/`encode-walker`/`pack` on the encode side and their decode mirrors;
+  `sniff.ts` reads the cleartext header); `streams/` the per-stream models; `encoder.ts` the streaming
+  `Encoder`; `browser.ts` the raw-browser-output → model normalizers + `entrySink` +
+  `environmentSnapshot` (its dependency on the `Encoder` is type-only so it tree-shakes away — keep it
+  that way); `profile-slices.ts` the samples→slices fold. `encode.ts`/`decode.ts`/`index.ts` are the
+  public barrels behind the `.`, `./encode`, `./decode` exports; the constants/types both halves share
+  are stated once in `contract.ts`, which both barrels re-export.
+- `test/` — the golden-corpus round-trip suite (`fixtures.ts` + the `*.test.ts`); `browser.test.ts`
+  replays every raw capture under `samples/json` through `entrySink` — the normalizers' grounding (keep
+  its `liveView` graft in step with `samples/capture-tool/sizes.mjs`).
 - `samples/` — the real Chrome captures the schema is grounded in (raw browser shapes + reproduction
-  tooling); **not** the golden corpus.
+  tooling, incl. `sizes.mjs`, which regenerates the README's size table); **not** the golden corpus.
 - `examples/` — the demos (`capture`, `extension`) — reference consumers, not shipped product.
 - `docs/` — `API.md` (usage + samples), `FileFormat.md` (wire spec), `Architecture.md`, `Plan.md`.
 - `LICENSE` — Apache-2.0.

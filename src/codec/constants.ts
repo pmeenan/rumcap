@@ -13,7 +13,8 @@ export const MAGIC: Readonly<Uint8Array> = new Uint8Array([0xf5, 0x52, 0x55, 0x4
  *  so readers can pull what they know from newer files — see FileFormat.md "Reading across versions". */
 export const CODEC_VERSION = 2;
 
-/** Canonical file extension for a packed capture. (The npm package is `rumcap`; the format is `rcap`.) */
+/** Canonical file extension for a packed capture — the ONE place the short name survives; the
+ *  package, repo, and format are all named `rumcap`. */
 export const FILE_EXTENSION = '.rcap';
 
 // Body section tags. Each section is [ tag:u8 ][ byteLen:varuint ][ payload ]; an unknown tag is

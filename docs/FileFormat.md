@@ -6,8 +6,8 @@ the code wins and this doc is the bug — a stale contract must be fixed (see [A
 
 - **Magic:** `F5 52 55 4D` (`\xF5RUM`). `0xF5` is an always-invalid UTF-8 lead byte, so a capture is
   unmistakably binary and sniffable by these four bytes alone.
-- **Canonical extension:** `.rcap`. (The npm package is `rumcap`; the format keeps the shorter `rcap`
-  identity and the `RUM` heritage in the magic.)
+- **Canonical extension:** `.rcap` — the one place the short name survives (package, repo, and format
+  are all named `rumcap`; the magic keeps the `RUM` heritage).
 - **Two version numbers:** `CODEC_VERSION` (the wire encoding) is independent of `FORMAT_VERSION` (the
   schema/model). A wire-layout change bumps the codec version; a schema change bumps the format version.
 

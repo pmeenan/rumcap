@@ -7,17 +7,19 @@ browser APIs; `rumcap` only aggregates and packs.
 
 ## What it demonstrates
 
-- Constructing an `Encoder` with capture-level **metadata**.
-- Normalizing each browser entry to the shared model and streaming it in (`setNavigation`, `addResource`,
-  `setLcp`, `addLayoutShift`, `addInteraction`, `addLongTask`, `addLoaf`, `mark`/`measure`,
-  `addVisibility`, `addError`, `setEnvironment`).
-- **Live attribution** that can't be recovered later (LCP element, CLS sources, INP target) captured as
-  structural CSS-path selectors — never element text (PII).
-- The **incremental profiler fold**: `Profiler.stop()` at periodic checkpoints → `addProfilerChunk()`
-  (folded to slices immediately), so the unload path stays cheap.
+- Constructing an `Encoder` with capture-level **metadata** + `environmentSnapshot()`.
+- **One `entrySink` as the callback for every `PerformanceObserver`** — normalization onto the model
+  (sentinel stripping, first-input dedup, LCP/paint accumulation, structural selectors for live
+  attribution) happens inside the library, so what remains here is only the capture *policy*: which
+  entry types to observe, and marking a stream `unsupported` when a browser can't deliver it.
+- The **incremental profiler fold**: `Profiler.stop()` at periodic checkpoints →
+  `addProfilerChunk(trace, actualInterval)` (folded to slices immediately), so the unload path stays
+  cheap — and `policy-blocked` recorded when the Document-Policy header is missing.
+- Window `error`/`unhandledrejection` events fed through `normalizeErrorEvent`/`normalizeRejection`.
 - A custom **`demo-app` timeline** authored with the stack-based API (`timeline().span()` / `begin`/`end`
   / `instant`) — depth comes from the call stack, duration from the begin→end delta.
-- `encoder.finish()` → a downloaded `.rcap` (also auto-saved on `visibilitychange`→hidden).
+- `encoder.finish()` → a downloaded `.rcap` (also auto-saved on `visibilitychange`→hidden), with
+  observer queues flushed through the sink first so the tail of the session isn't dropped.
 
 ## Run it
 
@@ -40,6 +42,5 @@ set for itself. On a page you don't control, use the [extension demo](../extensi
 the header is absent the demo records `profile: policy-blocked` (absence is data, never silence). The
 header/API are Chromium-only today — verify current support before relying on them.
 
-> This file favors clarity over completeness: it maps the common fields of each stream to show the
-> pattern, not every optional the format models. A production integration would live behind its own
-> overhead budget and redaction pass (redaction is a pre-`pack` step, not part of the codec).
+> A production integration would live behind its own overhead budget and redaction pass (redaction is
+> a pre-`pack` step, not part of the codec).

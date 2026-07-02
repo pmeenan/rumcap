@@ -21,6 +21,8 @@ samples/
     drive.mjs                  headless Chrome driver (puppeteer-core); CPU_THROTTLE=N for the -cpuNx variant
     capture-spike.js           zero-dep console version (any browser: Safari/Firefox/Chrome)
     inspect.mjs                prints the per-stream field inventory + profile summary
+    sizes.mjs                  rebuilds each capture via the library's entrySink and prints the
+                               raw / gzipped / .rcap size table (the README's numbers)
     package.json
 ```
 
@@ -62,7 +64,9 @@ A clean (non-`Headless`) UA plus `--disable-blink-features=AutomationControlled`
 
 Read these before treating any value as canonical:
 
-- **Duplicate `navigation` entry (and sometimes `paint`/LCP).** A buffered observer registered at document-start fires twice for these singletons — once provisional (`duration:0, transferSize:300`), once complete. The **last/complete** entry is authoritative; the provisional one is a capture artifact, not real data. The production `capture` library will read final state at finalize instead.
+- **Duplicate `navigation` entry (and sometimes `paint`/LCP).** A buffered observer registered at document-start fires twice for these singletons — once provisional (`duration:0, transferSize:300`), once complete. The **last/complete** entry is authoritative; the provisional one is a capture artifact, not real data. (`entrySink` handles this: set-replace, last wins.)
+- **Distinct `event` entries legitimately share `startTime`+`name`.** A `pointerenter` dispatches once per ancestor element entered, all stamped with the same event time — the CNN capture has 9 such entries for one pointer move. They are REAL, separate entries (different targets): do **not** dedup interactions by startTime+name. Only the `first-input` entry is a copy (of its one `event` twin) — that pair, and only that pair, merges. (An earlier demo dedup got this wrong; `test/browser.test.ts` locks the corrected behavior.)
+- **LoAF `scripts` serialize empty through the entry's `toJSON()`.** Each frame's `scripts` array comes out as `[{}, …]`; the real per-script fields (invoker, sourceURL, timings) were captured by reading the live objects and live under `__attribution.scripts`. Replay tooling must graft them back (see `liveView` in `test/browser.test.ts` / `sizes.mjs`). Also note: `sourceCharPosition` in this corpus is only ever a real value (0 = script start) — the spec's `-1` "could not be determined" sentinel is not exhibited here.
 - **Headless / datacenter capture.** `userAgentData.brands` is `[]` and `platform` is `''` (real Chrome populates these; high-entropy UA-CH needs async `getHighEntropyValues()`). `connection`, `deviceMemory`, `hardwareConcurrency`, and the `viewport*`/`screen*`/`devicePixelRatio` values (1366×768, DPR 1) describe the **capture host / headless window**, not a real user.
 - **`serverTiming` is empty** everywhere — these sites send none, or cross-origin resources lack `Timing-Allow-Origin`. The field is schema-relevant but unsampled here.
 - **`element` timing absent** — none of these pages set `elementtiming` attributes.
@@ -89,6 +93,8 @@ npm install                         # puppeteer-core; drives the system Chrome
 xvfb-run -a --server-args="-screen 0 1366x768x24" node drive.mjs                  # normal-speed corpus
 CPU_THROTTLE=6 xvfb-run -a --server-args="-screen 0 1366x768x24" node drive.mjs   # 6× worst-case (-cpu6x.json)
 node inspect.mjs                    # print the field inventory + profile summary
+node sizes.mjs                      # rebuild each capture via entrySink → the README's size table
+                                    # (requires `npm run build` at the repo root first)
 ```
 
 `CPU_THROTTLE=N` (N>1) applies the DevTools `N×` CPU throttle and writes a separate `chrome-<host>-cpuNx.json` set, leaving the normal corpus untouched (0/1 = off). Edit the site list or interactions at the top of `drive.mjs`. It writes the captures to `../json/`, and a `_summary[-cpuNx].json` index next to the tool (kept out of `json/` so the schema test only sees captures).

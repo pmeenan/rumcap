@@ -8,9 +8,32 @@ export { pack } from './codec/pack.js';
 // The canonical profiler transform: raw per-sample `Profiler.stop()` output → the nested-slice wire
 // model. `SliceBuilder` folds incrementally (the capture→wire seam); `samplesToSlices` is one-shot.
 export { SliceBuilder, samplesToSlices } from './profile-slices.js';
-// The streaming Encoder ("rcap instance"): feed events → stack-based custom-event timelines → finish().
+// The streaming Encoder ("rumcap instance"): feed events → stack-based custom-event timelines → finish().
 export { Encoder, Timeline, Span } from './encoder.js';
 export type { EncoderInit } from './encoder.js';
+// Browser-entry integration: raw PerformanceObserver/error-event/navigator output → the model, plus
+// `entrySink` (a ready-made observer callback feeding an Encoder). Pure and tree-shakeable — consumers
+// that feed pre-normalized models ship none of it.
+export {
+  entrySink,
+  environmentSnapshot,
+  structuralSelector,
+  normalizeResource,
+  normalizeNavigation,
+  normalizePaint,
+  normalizeLcp,
+  normalizeLayoutShift,
+  normalizeInteraction,
+  normalizeLongTask,
+  normalizeLoaf,
+  normalizeElementTiming,
+  normalizeMark,
+  normalizeMeasure,
+  normalizeVisibility,
+  normalizeErrorEvent,
+  normalizeRejection,
+} from './browser.js';
+export type { RawEntry, EntrySinkInput } from './browser.js';
 
 // ── The shared contract (constants + types; identical set on `rumcap/decode`) ──────────────────────
 export * from './contract.js';

@@ -2,8 +2,31 @@
   "name": "rumcap",
   "version": "0.0.0",
   "type": "module",
-  "description": "The compact, self-describing .rcap capture format: a streaming encoder and a separate, tree-shakeable decoder.",
+  "description": "The compact, self-describing .rcap web-performance capture format: resource/navigation/user timing, long tasks, LoAF, JS self-profiling and custom spans on one timeline — a streaming encoder and a separate, tree-shakeable decoder.",
+  "keywords": [
+    "rum",
+    "web-performance",
+    "performance",
+    "profiling",
+    "js-self-profiling",
+    "resource-timing",
+    "navigation-timing",
+    "server-timing",
+    "user-timing",
+    "long-animation-frames",
+    "core-web-vitals",
+    "waterfall",
+    "trace",
+    "binary-format",
+    "performance-observer"
+  ],
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pmeenan/rumcap.git"
+  },
+  "homepage": "https://github.com/pmeenan/rumcap#readme",
+  "bugs": "https://github.com/pmeenan/rumcap/issues",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

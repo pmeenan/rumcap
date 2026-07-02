@@ -24,8 +24,21 @@ including the degraded captures):
 - **The streaming `Encoder`** — feed methods per stream, stack-based custom-event timelines, the
   incremental profiler fold, `finish()` → bytes.
 - **`FORMAT_VERSION` 2** — capture-level `metadata` (a skippable section) and the `customEvents` stream.
-- **Demos** — [`examples/capture`](../examples/capture) (a page capturing itself) and
-  [`examples/extension`](../examples/extension) (a Chrome MV3 harness).
+- **Browser-entry integration** (`src/browser.ts`, 2026-07-01) — `entrySink` (a ready-made
+  `PerformanceObserver` callback) + per-type normalizers + `environmentSnapshot` + error-event mappers,
+  so raw browser output plugs straight into the `Encoder`; sentinel stripping (`0`/`''`/`-1`),
+  first-input twin dedup (only the twin — the corpus shows distinct events legitimately sharing
+  startTime+name), spec-name mapping, and droppedEntriesCount→loss all live in the library now instead
+  of every consumer. Grounded by replaying all 8 real sample captures in `test/browser.test.ts`;
+  tree-shakes away (~2.6 KB gzip when used; core stays ~6.4 KB). Ergonomics fixed in the same pass:
+  `addProfilerChunk(trace, sampleIntervalMs?)` (no more mutating the browser's trace), cached
+  `finish()`, `encoder.finished`, decode-side `sniff()`.
+- **Real size numbers** ([`samples/capture-tool/sizes.mjs`](../samples/capture-tool/sizes.mjs)) — full
+  captures incl. the 10ms profile: CNN 6.9 KB, Google Finance 10.8 KB, v0.app 10.7 KB (from a 1 MB raw
+  dump), Etsy 18.8 KB; 23–48% under gzipped JSON of the identical model. In the README.
+- **Demos** — [`examples/capture`](../examples/capture) (a page capturing itself — rewritten on
+  `entrySink`, verified end-to-end in headless Chrome) and [`examples/extension`](../examples/extension)
+  (a Chrome MV3 harness).
 
 ## Next
 
@@ -43,9 +56,11 @@ including the degraded captures):
 
 ## Resolved decisions
 
-- **Package name** — npm `rcap` was taken → the package is **`rumcap`**; the format/repo keep the
-  shorter `rcap` name, the `.rcap` extension, and the `\xF5RUM` magic (unchanged — changing the magic
-  would be a `CODEC_VERSION` break that invalidates the corpus).
+- **Naming** — npm `rcap` was taken → everything is **`rumcap`**: the package, the GitHub repo
+  (**`pmeenan/rumcap`** — decided 2026-07-01; the local remote points there; create the repo before the
+  first push — the old `rum-profiler` remote is retired), and the format itself. The ONLY surviving use
+  of the short name is the `.rcap` file extension. The `\xF5RUM` magic is unchanged (changing it would
+  be a `CODEC_VERSION` break that invalidates the corpus).
 - **Layout** — single package at the repo root (`src`/`test`/`samples`/`examples`/`docs`), not npm
   workspaces.
 - **Tooling** — TypeScript (strict, NodeNext, `verbatimModuleSyntax`), ESLint flat config (gate), vitest,
@@ -59,6 +74,11 @@ including the degraded captures):
   are data, not stream ids); nesting via an explicit optional `depth` derived from the authoring stack;
   encoded through the generic descriptor walker (no special handler) until real captures show volume that
   would justify a columnar one.
+- **Normalization is the library's; capture policy is the consumer's.** Raw-browser-shape → model mapping
+  (sentinels, spellings, dedup) lives in `src/browser.ts` — it is knowledge about the format and was
+  proven too subtle to leave to every consumer (the demo's own hand-rolled version had a real dedup bug
+  the corpus replay caught). Observer wiring, profiler lifecycle, sampling, and transport stay out of
+  the library.
 - **Profiler representation** — nested timed slices (call-tree), folded from raw samples on-page by
   `SliceBuilder`; a responsiveness view, not CPU-time accounting. (Full rationale retained in git
   history / the code comments.)

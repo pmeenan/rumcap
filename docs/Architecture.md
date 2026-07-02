@@ -44,10 +44,11 @@ provenance), then the embedded capture-config. Totality is the whole point — a
 ## 4. Data flow
 
 ```
-   your capture code                     rumcap                         tooling / viewer
-  (PerformanceObserver,   ──►  Encoder (aggregate, intern,   ──►  .rcap  ──►  unpack → Capture
-   JS Self-Profiler,            fold samples→slices)                          waterfall-tools
-   app instrumentation)              │                                       (transcode → Perfetto)
+   your capture code                          rumcap                          tooling / viewer
+  (PerformanceObserver,   ──►  entrySink/normalizers (raw entry →   ──►  .rcap  ──►  unpack → Capture
+   JS Self-Profiler,           model) → Encoder (aggregate,                          waterfall-tools
+   app instrumentation)        fold samples→slices)                                 (transcode → Perfetto)
+                                     │
                                      ▼
                                pack(Capture) → gzipped .rcap bytes
 ```
@@ -67,10 +68,20 @@ provenance), then the embedded capture-config. Totality is the whole point — a
   sides import, which is what makes encode/decode unable to drift; the stream table is total, so every
   stream id has a descriptor by construction. A few shapes a flat table can't express (navigation's
   two-block payload, the recursive `notRestoredReasons` tree, sparse maps, columnar profile slices) are
-  special-handler *tags* in those same tables. See [FileFormat.md](FileFormat.md).
-- **`Encoder`** (`src/encoder.ts`) — the streaming "rcap instance": feed methods per stream, stack-based
+  special-handler *tags* in those same tables. `sniff` reads the cleartext magic + versions without
+  decompressing, for tooling that routes files. See [FileFormat.md](FileFormat.md).
+- **`Encoder`** (`src/encoder.ts`) — the streaming "rumcap instance": feed methods per stream, stack-based
   custom-event timelines (depth from the call stack, duration from begin→end), the incremental profiler
-  fold, then `finish()` → bytes. Accumulates the `Capture` model and delegates to `pack`.
+  fold, then `finish()` → bytes (cached — double-save paths re-use them). Accumulates the `Capture`
+  model and delegates to `pack`.
+- **browser integration** (`src/browser.ts`) — the normalization from RAW Web Performance API output
+  (live entries or their `toJSON()` forms) onto the spec-canonical model, plus `entrySink` (a ready-made
+  `PerformanceObserver` callback holding the stateful quirks: paint/LCP accumulation, first-input twin
+  dedup, droppedEntriesCount → loss notes) and `environmentSnapshot`. This is where platform sentinels
+  (`0`/`''`/`-1`) become *absence* and browser spellings land on spec names — stated once, grounded in
+  the sample corpus, instead of re-implemented per consumer. Deliberately independent of the `Encoder`
+  (type-only dependency) so it tree-shakes away for consumers that feed pre-normalized models. Capture
+  *policy* — which observers, profiler lifecycle, when to save — remains the consumer's (see the demos).
 - **`SliceBuilder`** (`src/profile-slices.ts`) — the samples→slices fold. A sampling profiler can only
   observe that a frame was on-stack across a run of samples; the builder coalesces each contiguous run
   spanning ≥ ~1 interval into one slice and drops shorter transients to a `droppedSamples` count. It's

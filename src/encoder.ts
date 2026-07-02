@@ -54,8 +54,10 @@ export interface EncoderInit {
   captureStart?: RelMs;
   /** Reported timer precision/coarsening in ms, if known. */
   precision?: number;
-  /** The actual (clamped) profiler sample interval, so the slice fold's floor/gap work from chunk 1. */
-  sampleIntervalMs?: DurationMs;
+  /** The actual (clamped) profiler sample interval in ms, so the slice fold's floor/gap work from
+   *  chunk 1. A plain number: it is capture config, not a timeline value, so it carries no brand
+   *  (it can also be supplied per chunk — see `addProfilerChunk`). */
+  sampleIntervalMs?: number;
   /** Capture-level metadata (arbitrary JSON). May also be set later via `setMetadata`/`putMetadata`.
    *  Copied shallowly on construction — later `putMetadata` calls never mutate the object you pass. */
   metadata?: Record<string, JsonValue>;
@@ -215,12 +217,13 @@ export class Encoder {
   readonly #captureStart: RelMs;
   readonly #precision: number | undefined;
   readonly #config: CaptureConfig;
-  readonly #sampleIntervalMs: DurationMs | undefined;
+  readonly #sampleIntervalMs: number | undefined;
   #metadata: Record<string, JsonValue> | undefined;
   #overhead: OverheadReport | undefined;
   #slices: SliceBuilder | undefined;
   #maxTime: number;
   #finalized = false;
+  #packed: Promise<Uint8Array> | undefined;
 
   constructor(init: EncoderInit = {}) {
     this.#now = init.now ?? (() => performance.now() as RelMs);
@@ -321,13 +324,15 @@ export class Encoder {
   }
 
   // ── profiler (incremental fold, reuses SliceBuilder) ─────────────────────────────────────────────
-  /** Feed one raw `Profiler.stop()` chunk; folded into the accumulating call-tree immediately. */
-  addProfilerChunk(trace: ProfilerTrace): this {
+  /** Feed one raw `Profiler.stop()` chunk; folded into the accumulating call-tree immediately.
+   *  `sampleIntervalMs` is the ACTUAL (clamped) interval — pass `profiler.sampleInterval` here rather
+   *  than mutating the browser's trace. Adopted once (first source wins across this param, the
+   *  constructor option, then the trace's own field); the fold's floor/gap are derived from it. */
+  addProfilerChunk(trace: ProfilerTrace, sampleIntervalMs?: number): this {
     this.#assertOpen();
     if (this.#slices === undefined) {
-      this.#slices = new SliceBuilder(
-        this.#sampleIntervalMs !== undefined ? { sampleIntervalMs: this.#sampleIntervalMs as number } : {},
-      );
+      const interval = sampleIntervalMs ?? this.#sampleIntervalMs;
+      this.#slices = new SliceBuilder(interval !== undefined ? { sampleIntervalMs: interval } : {});
     }
     this.#slices.addChunk(trace);
     return this;
@@ -393,9 +398,18 @@ export class Encoder {
     return capture;
   }
 
-  /** Fold the profiler tail, assemble the TOTAL manifest, and pack. Async only because gzip is. */
+  /** Fold the profiler tail, assemble the TOTAL manifest, and pack. Async only because gzip is.
+   *  The result is cached: the double-save paths real pages have (`pagehide` AND
+   *  `visibilitychange`→hidden both firing) get the same bytes without re-packing. */
   async finish(): Promise<Uint8Array> {
-    return pack(this.toCapture());
+    return (this.#packed ??= pack(this.toCapture()));
+  }
+
+  /** True once `finish()`/`toCapture()` has finalized the capture — further feeds would throw.
+   *  Feed paths that can fire late (a lingering PerformanceObserver delivery) check this to drop
+   *  silently instead; see `entrySink`. */
+  get finished(): boolean {
+    return this.#finalized;
   }
 
   // ── internals ────────────────────────────────────────────────────────────────────────────────────
