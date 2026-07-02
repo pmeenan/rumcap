@@ -1,121 +1,94 @@
-# rum-profiler — Architecture
+# rumcap — Architecture
 
-> Project-wide architecture. Each component refines its own design in `components/<name>/docs/Architecture.md`. This document is the contract between them.
+> The library's design. The wire spec is [FileFormat.md](FileFormat.md); the usage/API is
+> [API.md](API.md). This document is the "why and how it fits together."
 
 ## 1. Goal
 
-Capture deep, real-user performance data from production web pages and make it answerable. "Deep" means: not just metrics, but a correlated, per-session **profile** that explains them. Broad metric coverage and deep profiling are **co-equal** — they are two views of one data model.
-
-The questions we want a single captured sample to answer:
-
-- What blocked LCP (TTFB vs. resource load vs. render delay vs. main-thread contention)?
-- What did hydration cost, and what ran during it?
-- Where are the windows where both the network and the main thread were idle — i.e. where deferred work could have been scheduled?
-- What ran during the interaction that produced a slow INP?
-
-None of these come from a single API. They come from putting every signal on one timeline and querying it.
+Own one thing well: a compact, self-describing binary container (`.rcap`) for real-user
+web-performance captures, with an **encoder** that aggregates events streamed in from any capture code
+and a separate **decoder** for tooling. Capturing is the consumer's job; viewing is
+[waterfall-tools](https://github.com/pmeenan/waterfall-tools). Everything else the earlier drafts
+imagined (transport, server, aggregate, a bespoke renderer) is out of scope.
 
 ## 2. Principles
 
-1. **One correlated timeline.** All signals are placed on a single high-resolution clock (`performance.timeOrigin` based). Correlation is the core value and the hard part.
-2. **Metrics are derived, not separate.** CWV and attribution are computed from the same raw entries that feed the profile. Some attribution that references ephemeral DOM state (LCP element, CLS sources, INP target) must be captured *live*; the rest is derived offline.
-3. **Robust to missing data.** Every signal is an optional, independently-degradable stream. The format self-describes what is present and *why* anything is absent. Consumers degrade gracefully and never confuse "unknown" with "zero."
-4. **Local-first.** The v0 product is fully client-side: capture in the page, pack to a file, view via embedded Perfetto. No server required.
-5. **Tiny and self-measuring.** The capture library is zero-dependency and tree-shakeable, and it measures its own CPU/byte overhead.
-6. **Privacy-first.** URLs and stack frames may carry PII. Redaction is part of capture and format design.
-7. **Open, versioned format.** The compact format is specified and versioned so it survives browser-API churn and third-party adoption.
-8. **Independent components.** Components integrate only through published interfaces and the shared `format`.
-9. **Browser APIs are the measurement boundary.** The extension is a harness for injecting the client libraries, enabling required headers, saving captures, and opening the viewer. It must not provide measurement data through extension-only APIs such as `webRequest`; the capture itself comes 100% from browser APIs available to page code.
+1. **Self-describing & robust to missing data.** Every stream is optional; the manifest records what's
+   present and, for anything absent, *why*. Unknown is never confused with zero.
+2. **One correlated timeline.** All signals sit on a single `performance.timeOrigin`-anchored clock;
+   ordering uses monotonic offsets, never epoch/`Date.now()` thresholds.
+3. **Honest precision.** Measured timings keep full 1µs precision; a value that was only *inferred*
+   (profile-slice durations) is stored coarser rather than faked. Never synthesize data you didn't
+   measure.
+4. **Tiny on the page.** The encode path is zero-dependency and tree-shakes free of the decoder.
+5. **Privacy-aware.** URLs and stack frames can carry PII; redaction is a pre-`pack` pass, designed for
+   but separate from the codec.
+6. **Open, versioned format.** A wire `CODEC_VERSION` and a schema `FORMAT_VERSION`, with skippable
+   sections/streams so the format survives browser-API churn and third-party adoption.
 
 ## 3. The data model
 
-A capture is a set of **streams** sharing one time base, plus a **manifest** describing them.
+A `Capture` (`src/capture.ts`) is: a **manifest**, a set of optional **streams** on one clock,
+optional self-measured **overhead**, and optional capture-level **metadata** (arbitrary JSON).
 
-### Streams (all optional)
+**Streams** (all optional, `src/streams/`): navigation, resources, paint, LCP, CLS, interactions
+(Event Timing/INP), long tasks, LoAF, element timing, user timing, visibility, environment, the JS
+**profile** (stored as derived nested slices, not raw samples), errors, and **customEvents** —
+app/library-instrumented named, timed, namespaced spans.
 
-- **Document / navigation** — Navigation Timing, page lifecycle state, bfcache restores, soft-navigation boundaries (native signals when available, plus explicit app/router marks when provided).
-- **Resources** — Resource Timing entries with sub-phases (queueing, DNS, connect, TLS, TTFB, download), Server-Timing, initiator info where available.
-- **Rendering & layout** — Paint Timing (FP/FCP), LCP (+ sub-parts and element attribution), Layout Instability (CLS + shift sources), Element Timing.
-- **Interactivity** — Event Timing / INP, Long Tasks, Long Animation Frames (LoAF) with scripts/attribution.
-- **Profile** — JS self-profiling, stored as derived nested timed **slices** (a call-tree folded from the raw samples — see [`format`](../components/format); requires the `Document-Policy: js-profiling` response header; Chromium-only today, so confirm current browser support before relying on it).
-- **App signals** — User Timing marks/measures, custom app/framework instrumentation, JS errors.
-- **Environment** — UA Client Hints, device memory / hardware concurrency, network information, memory measurement — for segmentation.
-
-### Manifest
-
-Every packed capture begins with a manifest declaring the timeline clock metadata (`performance.timeOrigin`, capture start/end, timestamp unit/base and precision), and per stream: present or absent; schema version; and if absent, **why** — `unsupported` (browser lacks the API), `not-requested` (capture config excluded it), `dropped` (overhead/sampling budget), or `policy-blocked` (e.g. missing Document Policy). The manifest also records **loss/truncation** within present streams (e.g. "resource buffer overflowed at T, N entries dropped") and per-value **provenance** (which API/browser produced it).
-
-### Derived vs. live-captured
-
-| Output | When computed |
-|---|---|
-| TTFB, FCP, LCP time, CLS score, INP value | Derivable offline from raw entries |
-| LCP element identity, CLS shift sources, INP interaction target | Must be captured **live** (references ephemeral DOM) |
-| Idle-window / schedulability analysis | Derived offline by intersecting busy intervals across streams |
+**Manifest** (`src/manifest.ts`): the clock metadata, then a **TOTAL** per-stream status record
+(`present | unsupported | not-requested | dropped | policy-blocked` + schemaVersion + loss +
+provenance), then the embedded capture-config. Totality is the whole point — a reader can always tell
+*not collected* from *collected, found nothing*.
 
 ## 4. Data flow
 
 ```
-            ┌─────────── in the page ───────────┐
-  browser   │  capture  ──►  in-memory timeline  │
-  perf APIs │     │                              │
-            │     ▼                              │
-            │  format (pack)  ──►  .rcap file  │   canonical, compact, self-describing
-            └─────────────────┬──────────────────┘
-                              │
-        ┌─────────────────────┼───────────────────────────────┐
-        ▼                     ▼                                ▼
-   transcode            analysis                        symbolication
-   (→ Perfetto       (metrics & attribution        (source maps → readable
-    protobuf:         from the timeline)             profiler frames)
-    timeline +             │                                │
-    profile +              ▼                                ▼
-    counters)        metrics / queries              symbolicated profile
-        │
-        ▼
-   viewer (embedded Perfetto UI, local)
+   your capture code                     rumcap                         tooling / viewer
+  (PerformanceObserver,   ──►  Encoder (aggregate, intern,   ──►  .rcap  ──►  unpack → Capture
+   JS Self-Profiler,            fold samples→slices)                          waterfall-tools
+   app instrumentation)              │                                       (transcode → Perfetto)
+                                     ▼
+                               pack(Capture) → gzipped .rcap bytes
 ```
 
-- **Canonical artifact:** the packed `.rcap` file (magic `F5 52 55 4D`). It is what gets saved, transported, and stored.
-- **Perfetto is a transcode target, not the canonical store.** We keep our own compact format for wire size and control, and transcode to Perfetto for viewing.
-- **v0 injector/saver:** the extension is only a harness: it injects capture + format, enables required response headers, writes `.rcap` files, and can hand them to the viewer. It does not collect performance data through extension-only mechanisms.
+- The **canonical artifact** is the `.rcap` file (magic `F5 52 55 4D`).
+- **Viewing** transcodes `.rcap` → Perfetto in waterfall-tools; `rumcap` keeps its own compact format
+  for wire size, redaction control, and ownership of the schema. That work lives in waterfall-tools, not
+  here.
 
-## 5. Viewing strategy
+## 5. Components (within the single package)
 
-Per-sample viewing leans on **Perfetto**:
+- **`format` model** (`src/{capture,manifest,config,registry,version,json,time}.ts`, `src/streams/`) —
+  the TypeScript contract. Timestamps are branded (`RelMs`/`DurationMs`/`EpochMs`) so an epoch-vs-relative
+  mix-up is a compile error.
+- **codec** (`src/codec/`) — descriptor-driven encode/decode, **physically split** so `rumcap/encode`
+  carries no decoder. Shared *data* (the `Desc` tables, section-tag constants) lives in modules both
+  sides import, which is what makes encode/decode unable to drift; the stream table is total, so every
+  stream id has a descriptor by construction. A few shapes a flat table can't express (navigation's
+  two-block payload, the recursive `notRestoredReasons` tree, sparse maps, columnar profile slices) are
+  special-handler *tags* in those same tables. See [FileFormat.md](FileFormat.md).
+- **`Encoder`** (`src/encoder.ts`) — the streaming "rcap instance": feed methods per stream, stack-based
+  custom-event timelines (depth from the call stack, duration from begin→end), the incremental profiler
+  fold, then `finish()` → bytes. Accumulates the `Capture` model and delegates to `pack`.
+- **`SliceBuilder`** (`src/profile-slices.ts`) — the samples→slices fold. A sampling profiler can only
+  observe that a frame was on-stack across a run of samples; the builder coalesces each contiguous run
+  spanning ≥ ~1 interval into one slice and drops shorter transients to a `droppedSamples` count. It's
+  incremental (fold `Profiler.stop()` chunks at checkpoints) so the unload path stays cheap.
 
-- Slices/tracks for nav phases, resources (nested async sub-phases), long tasks, LoAF, user timing.
-- **Profile slices** for the JS self-profile → nested on the main-thread track, inline with long tasks/LoAF; a flamegraph comes from Perfetto aggregating the slice track (the slice wire model trades the *native* sampled-callstack profile for inline-with-the-timeline correlation).
-- **Counter tracks** for in-flight requests, CLS-over-time, memory.
-- **Flow arrows** connecting interaction → LoAF → paint for INP stories.
-- Perfetto's **SQL trace_processor** doubles as a metrics/analysis surface — directly serving the "metrics and profile inform each other" goal.
+## 6. Cross-cutting concerns
 
-We emit the **Perfetto protobuf** (not legacy Chrome JSON) because it carries counter tracks and interned track events (frames/strings) compactly — and the dense profile-slice track leans on that interning. The viewer embeds `ui.perfetto.dev` via postMessage and hands over an ArrayBuffer; processing stays local in-browser. Trust boundary: the embedded `ui.perfetto.dev` instance is trusted third-party-origin code for v0 viewing, and it receives the trace bytes even though it does not upload them. The [waterfall-tools](https://github.com/pmeenan/waterfall-tools) embedding flow is our reference for this.
+- **Time base.** One `timeOrigin`-anchored clock; per-context (iframe/worker) mappings are modeled but
+  unused until multi-context capture exists. Epoch values are metadata; monotonic offsets drive order.
+- **Loss & truncation.** Buffer-full, sample-budget, and size-budget losses are recorded in the
+  manifest, never silently dropped.
+- **Overhead.** A capture can self-measure and record its own CPU/byte cost in-band (`OverheadReport`).
+- **Redaction.** A pre-`pack` pass over the `Capture` (URL/stack-frame policies); the codec round-trips
+  faithfully without judging, and `checkConsistency` (tooling) flags manifest/payload disagreements.
+- **WASM-readiness.** The structural encode is synchronous and per-section — the seam a WASM codec or an
+  incremental on-page driver would slot into behind the same API.
 
-Perfetto is the *per-sample* viewer only. Aggregate viewing (`components/aggregate`) is a separate build. A bespoke resource-waterfall view may be added later if Perfetto's is insufficient.
+## 7. Reference & viewer
 
-## 6. Capture configuration
-
-Capture is driven by a declarative **capture-config**: which streams to attempt, sampling rates, profiler interval, and size/overhead budgets. In the v0 local loop this is a local default baked into the extension. In Phase 2 the same schema is delivered dynamically by the server to target "interesting" sessions/events — so the v0 config object *is* the Phase 2 dynamic-config object, sourced differently. The schema lives in `components/format`.
-
-## 7. Cross-cutting concerns
-
-- **Privacy / PII:** URL and stack-frame redaction policies; consent gating; self-profiling's cross-origin symbol limits.
-- **Overhead:** a hard budget on capture CPU + bytes; the capture library self-measures and records its own cost into the capture.
-- **Browser support matrix:** which APIs exist where; drives the degradation paths and provenance.
-- **Time base:** a single `timeOrigin`-anchored clock; reconciling the different observers' timestamps is a first-class capture responsibility. If a future stream captures workers or frames, each execution context's own `performance.timeOrigin` must be recorded and mapped onto the page timeline through an explicit handshake. Epoch-clock values are metadata only; monotonic offsets drive ordering so NTP/system-clock changes cannot bend the timeline.
-- **Loss & truncation:** buffer-full handling (resource timing), profiler sample budgets, LoAF's >50ms threshold — all recorded, never silently dropped.
-- **Extension boundary:** extension APIs may support harness tasks (script/header injection, UI, saving/opening files), but never replace page-visible performance APIs as the measurement source.
-- **Unload path:** final page-lifecycle work must be cheap. Packing, interning, compression, and transport preparation should happen incrementally or off-main-thread where possible; unload/pagehide should mostly flush already-prepared bytes and metadata.
-
-## 8. Components
-
-See each component's folder for detail. Dependencies flow roughly left-to-right:
-
-`capture` → `format` → (`transcode` → `viewer`) / `analysis` / `symbolication` → `transport` → `server` → `aggregate`
-
-Independence is enforced through the `format` contract. See [Plan.md](Plan.md) for phasing.
-
-## 9. Reference, not dependency
-
-[waterfall-tools](https://github.com/pmeenan/waterfall-tools) informs our Perfetto embedding and protobuf wire handling. It is read-only reference material; `rum-profiler` stays independent.
+[waterfall-tools](https://github.com/pmeenan/waterfall-tools) is the supported viewer and an
+implementation reference for Perfetto embedding. `rumcap` stays independent of it.

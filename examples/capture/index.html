@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>rumcap — capture demo</title>
+    <!--
+      Resolve the bare `rumcap/encode` specifier to the built library. Run `npm run build` at the repo
+      root first, then serve the repo over HTTP (e.g. `npx serve` or `python3 -m http.server`) and open
+      /examples/capture/. Native ESM loads dist/ directly — no bundler needed for the demo.
+    -->
+    <script type="importmap">
+      { "imports": { "rumcap/encode": "../../dist/encode.js" } }
+    </script>
+    <style>
+      body { font: 15px/1.5 system-ui, sans-serif; max-width: 44rem; margin: 3rem auto; padding: 0 1rem; }
+      button { font: inherit; padding: 0.5rem 1rem; cursor: pointer; }
+      code { background: #0001; padding: 0.1em 0.3em; border-radius: 3px; }
+      #log { white-space: pre-wrap; background: #0001; padding: 1rem; border-radius: 6px; margin-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>rumcap capture demo</h1>
+    <p>
+      This page uses the <code>rumcap</code> streaming <code>Encoder</code> to capture its own Web
+      Performance data (navigation, resources, paint/LCP, layout shifts, interactions, long tasks/LoAF,
+      user timing, the JS self-profiler) plus a custom <code>demo-app</code> timeline, and packs it into
+      a <code>.rcap</code> file.
+    </p>
+    <p>
+      Interact with the page (the button below), then click <b>Save capture</b> — or just switch tabs;
+      it auto-saves on hide. Open the downloaded <code>.rcap</code> in a supporting viewer
+      (<a href="https://github.com/pmeenan/waterfall-tools">waterfall-tools</a>).
+    </p>
+    <p>
+      <button id="churn">Do some work (fires interactions + long tasks)</button>
+      <button id="save">Save capture</button>
+    </p>
+    <div id="log">loading…</div>
+
+    <script type="module">
+      import { startCapture } from './rumcap-capture.js';
+
+      const log = document.getElementById('log');
+      const say = (m) => (log.textContent = m + '\n' + log.textContent);
+
+      // Start capturing as early as possible, attaching a bit of app metadata.
+      const session = startCapture({ metadata: { demo: 'capture', build: 'example' }, sampleIntervalMs: 10 });
+      say('capturing… interact, then Save (or switch tabs).');
+
+      document.getElementById('churn').addEventListener('click', () => {
+        if (session.isSaved()) {
+          say('capture already saved — reload to start a new session');
+          return;
+        }
+        // A synthetic long task + a user-timing measure + nested custom spans (stack-based: depth comes
+        // from the call structure), to give the capture — and the profiler — something interesting.
+        // The synthetic load lives HERE, behind a click on the demo page, never in startCapture itself.
+        performance.mark('churn-start');
+        const tl = session.encoder.timeline('demo-app');
+        const x = tl.span('churn', { source: 'button' }, () => {
+          const inner = tl.begin('busy-loop');
+          const t0 = performance.now();
+          let acc = 0;
+          while (performance.now() - t0 < 60) acc += Math.random();
+          inner.end({ ms: 60 });
+          return acc;
+        });
+        performance.measure('churn', 'churn-start');
+        tl.instant('user-click', { x: Math.round(x) });
+        say('did ~60ms of work');
+      });
+
+      document.getElementById('save').addEventListener('click', async () => {
+        const bytes = await session.save();
+        say(bytes ? `saved ${bytes.length} bytes (.rcap downloaded)` : 'already saved');
+      });
+    </script>
+  </body>
+</html>

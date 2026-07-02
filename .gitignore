@@ -3,3 +3,5 @@ dist/
 *.tsbuildinfo
 coverage/
 .DS_Store
+# Built demo bundle (generated from injected-entry.js by esbuild — see examples/extension/README.md)
+examples/extension/injected.js

@@ -1,17 +1,36 @@
 {
-  "name": "rum-profiler",
+  "name": "rumcap",
   "version": "0.0.0",
-  "private": true,
   "type": "module",
-  "description": "Client-side tools for deep real-user performance capture, profiling, and analysis.",
+  "description": "The compact, self-describing .rcap capture format: a streaming encoder and a separate, tree-shakeable decoder.",
   "license": "Apache-2.0",
-  "workspaces": [
-    "components/format"
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./encode": {
+      "types": "./dist/encode.d.ts",
+      "default": "./dist/encode.js"
+    },
+    "./decode": {
+      "types": "./dist/decode.d.ts",
+      "default": "./dist/decode.js"
+    }
+  },
+  "//sideEffects": "All modules are pure (definitions only, no top-level side effects), so bundlers may drop unused exports — this is what tree-shakes the decode side off the on-page encode path. See docs/FileFormat.md.",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "src"
   ],
   "scripts": {
     "build": "tsc -b",
-    "clean": "tsc -b --clean",
-    "typecheck": "tsc -b && tsc -p components/format/tsconfig.test.json",
+    "clean": "tsc -b --clean && node -e \"const fs=require('node:fs'); fs.rmSync('dist',{recursive:true,force:true}); for (const f of fs.readdirSync('.')) if (f.endsWith('.tsbuildinfo')) fs.rmSync(f,{force:true});\"",
+    "prepack": "npm run clean && npm run build",
+    "typecheck": "tsc -b && tsc -p tsconfig.test.json",
     "lint": "eslint . --max-warnings 0",
     "test": "npm run typecheck && vitest run"
   },
@@ -19,6 +38,7 @@
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.0.1",
     "eslint": "^10.6.0",
+    "globals": "^17.7.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.62.0",
     "vitest": "^4.1.9"

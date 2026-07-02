@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    // Tests exercise the browser-shaped codec plus Node's process/Buffer; WebWorker gives the Web
+    // Platform globals, node gives the test-only Node surface. (src itself stays WebWorker-only.)
+    "lib": ["ES2023", "WebWorker"],
+    "types": ["node"]
+  },
+  "include": ["test"]
+}

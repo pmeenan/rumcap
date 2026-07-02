@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [{ "header": "Document-Policy", "operation": "set", "value": "js-profiling" }]
+    },
+    "condition": {
+      "resourceTypes": ["main_frame", "sub_frame"]
+    }
+  }
+]

@@ -1,4 +1,13 @@
 {
-  "files": [],
-  "references": [{ "path": "components/format" }]
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    // The codec uses cross-environment Web Platform globals (TextEncoder, ReadableStream,
+    // Compression/DecompressionStream). WebWorker (not DOM) types exactly that safe subset — present
+    // in browsers AND Node, and polyfillable — without exposing the DOM tree (document/window), which
+    // would not exist when this same code runs under Node.
+    "lib": ["ES2023", "WebWorker"]
+  },
+  "include": ["src"]
 }

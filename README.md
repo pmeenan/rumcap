@@ -1,61 +1,113 @@
-# rum-profiler
+# rumcap
 
-Open-source tooling for measuring, profiling, and analyzing web applications from the field — real-user data that goes **deep**, not just top-line.
+A small, dependency-free library for the **`.rcap`** capture format — a compact, self-describing binary
+format for real-user web-performance captures. It ships a streaming **encoder** and a separate,
+tree-shakeable **decoder** (published on npm as **`rumcap`**; the format and repo keep the shorter
+`rcap` name).
 
-Most RUM libraries (boomerang, web-vitals, commercial SDKs) report metrics. `rum-profiler` couples those same metrics with a correlated, per-session **profile** — long tasks, Long Animation Frames (LoAF), JS self-profiling, navigation/resource/server timing — woven onto a single timeline so you can answer *why*, not just *what*:
+You bring your own capture code — `PerformanceObserver`s, the JS Self-Profiler, your app's own
+instrumentation — and stream events into a `rumcap` encoder, which aggregates and packs them into a
+small `.rcap` file. `rumcap` owns the **format and the packing**; presentation is delegated to a viewer.
 
-- What is blocking LCP?
-- What is expensive about hydration?
-- Where are the windows of idle network vs. idle CPU where work could be scheduled?
+```ts
+import { Encoder, asRelMs } from 'rumcap/encode';
 
-Broad metric coverage and deep profiling are **co-equal goals** — each informs the other, because both are just different queries over the same correlated timeline.
+const enc = new Encoder({ metadata: { release: '2026.7.1' } });
 
-## Status
+// feed browser entries as your own observers see them…
+enc.setNavigation(nav).addResource(res).mark({ name: 'hydrated', startTime: asRelMs(performance.now()) });
 
-Early design / greenfield. See [docs/Architecture.md](docs/Architecture.md) and [docs/Plan.md](docs/Plan.md). Nothing here is stable yet.
+// …instrument your own code with stack-based, namespaced spans (depth from the call stack,
+// duration from begin→end)…
+enc.timeline('checkout').span('place-order', { items: 3 }, () => submit());
 
-## The v0 loop (local-first, no server)
+// …and get the packed .rcap bytes.
+const bytes = await enc.finish();
+```
 
-1. A **capture** library reads whatever browser performance APIs are available and builds a correlated timeline.
-2. A **format** library packs it into a compact, self-describing binary file.
-3. A **Chrome extension** injects the capture library (and the Document Policy needed for JS self-profiling) into real production pages, then saves the packed capture to disk.
-4. A **transcoder** converts a packed capture into the Perfetto trace format, and a thin **viewer** opens it in an embedded Perfetto UI for inspection.
+See **[docs/API.md](docs/API.md)** for the full API and **[docs/FileFormat.md](docs/FileFormat.md)** for
+the wire specification.
 
-That loop is useful on any site, with no backend. Server-side ingestion, dynamic capture config, and aggregate analysis come later.
+## Why
 
-The extension is only a harness. It injects the libraries, enables required headers, saves captures, and opens the viewer; the measurement data itself comes entirely from browser APIs observed by the injected `capture` library.
+Most RUM libraries own capture *and* storage *and* presentation, in one bundle. `rumcap` unbundles the
+middle: a tiny, versioned, self-describing container that any capture code can write and any tool can
+read. That means:
 
-## Components
+- **Bring your own capture.** Use `web-vitals`, a framework's hooks, your own observers — whatever
+  produces the events. `rumcap` just aggregates and packs them.
+- **Instrument your own code.** The `customEvents` stream gives libraries and app code a generic,
+  profiler-like way to record named, timed, detail-carrying spans, namespaced onto separate timelines.
+- **Attach capture-level metadata.** Arbitrary JSON (release, experiment, page type, …) travels with
+  the capture.
+- **Tiny on the page.** Zero runtime dependencies; the encoder tree-shakes free of the decoder. The
+  full encode surface (pack + streaming `Encoder` + profiler fold) is ~6.6 KB gzip.
 
-Each lives in its own folder under [`components/`](components/) with its own `README.md` and `docs/`. Project-wide design and planning live in the root [`docs/`](docs/).
+## Two independent halves
 
-| Component | Folder | Phase | Milestone | Purpose |
-|---|---|---|---|---|
-| Capture | [`components/capture`](components/capture) | 0/1 | v0 | Read browser perf APIs → correlated in-memory timeline |
-| Format | [`components/format`](components/format) | 0 | v0 | Schema + compact, self-describing binary pack/unpack |
-| Transcode | [`components/transcode`](components/transcode) | 1 | v0 | Packed capture → Perfetto protobuf (timeline, profile slices, counters) |
-| Extension | [`components/extension`](components/extension) | 1 | v0 | Inject capture + Document Policy into live pages; save captures |
-| Viewer | [`components/viewer`](components/viewer) | 1 | v0 | Embed Perfetto UI; load packed captures locally |
-| Analysis | [`components/analysis`](components/analysis) | 1 | v0 | Derive metrics & attribution (CWV, LCP/INP/CLS, idle windows) |
-| Symbolication | [`components/symbolication`](components/symbolication) | 1 | v0 | Source-map resolution & prettifying for profiler frames |
-| Transport | [`components/transport`](components/transport) | 2 | field collection | Reliable beaconing of captures to a server |
-| Server | [`components/server`](components/server) | 2 | field collection | Reference ingest/processing + dynamic capture-config delivery |
-| Aggregate | [`components/aggregate`](components/aggregate) | 3 | aggregate | Live aggregate dashboards over collected captures |
+```ts
+import { pack, Encoder } from 'rumcap/encode';   // producing captures on a page — no decoder shipped
+import { unpack } from 'rumcap/decode';          // reading captures in tooling
+import { pack, unpack } from 'rumcap';           // both, for convenience
+```
 
-## Design tenets
+The split is physical (separate modules + subpath exports), so an encode-only import can't pull in the
+decoder or `DecompressionStream` even without a bundler.
 
-- **Deep + broad, co-equal.** Metrics and profile are one data model, queried two ways.
-- **Robust to missing data.** Every capture stream is optional and independently degradable; the format records what is present, what is absent, and *why*.
-- **Local-first.** The v0 product works entirely client-side via the extension — capture, save, view.
-- **Tiny on the page.** The capture library is zero-dependency, tree-shakeable, and measures its own overhead.
-- **Privacy-first.** URLs and stack frames can carry PII; redaction is part of capture and format design, not an afterthought.
-- **Open, versioned format.** The compact wire format is specified and versioned so it can outlive any one browser API.
-- **Independent components.** Each component stands alone with clear inputs/outputs.
+## Format highlights
 
-## Related projects
+- **Self-describing & robust to missing data.** Every stream is optional; the manifest records what's
+  present and, for anything absent, **why** (`unsupported` / `not-requested` / `dropped` /
+  `policy-blocked`) plus loss/truncation and provenance. *Unknown is never confused with zero.*
+- **Compact.** String interning, LEB128 varints, fixed-point-µs timestamps, presence-bitmap optionals,
+  columnar profile slices, and an outer gzip — smaller than gzipped JSON on the golden corpus.
+- **Versioned.** A wire `CODEC_VERSION` and a schema `FORMAT_VERSION` (both currently **2**), with
+  skippable sections/streams and self-describing manifest records so a reader pulls what it knows from a
+  newer file — adding a stream never breaks an older reader (see
+  [docs/FileFormat.md](docs/FileFormat.md) "Reading across versions").
+- **Honest precision.** Measured timings keep full 1µs precision; sample-*inferred* profile-slice
+  durations are deliberately coarsened to 1ms rather than fake microseconds.
 
-[waterfall-tools](https://github.com/pmeenan/waterfall-tools) is a sibling project (network-waterfall viewing, multi-format trace ingestion, Perfetto/DevTools embedding). We use it as an **implementation reference only** — `rum-profiler` does not depend on it; the use cases are distinct and the components stay independent.
+## Demos
+
+Both under [`examples/`](examples) — reference consumers, not shipped product:
+
+- **[examples/capture](examples/capture)** — a page that captures its own performance (observers + the
+  JS Self-Profiler + a custom timeline) and downloads a `.rcap`.
+- **[examples/extension](examples/extension)** — a minimal Chrome MV3 harness that injects the capture
+  demo into any page and adds the `Document-Policy: js-profiling` header so the profiler works.
+
+## Viewing
+
+`rumcap` does not render captures. The supported viewer is
+**[waterfall-tools](https://github.com/pmeenan/waterfall-tools)** (network-waterfall + Perfetto/DevTools
+embedding); `.rcap` support is added there separately. `rumcap` stays focused on the format.
+
+## Scope & non-goals
+
+This project is deliberately narrow: **the `.rcap` format — encode and decode — and nothing else.**
+
+- **Out of scope:** capturing (bring your own — the demos show how), transporting/beaconing, server
+  ingest, aggregate dashboards, and rendering. Earlier drafts scoped these as sibling components; that
+  breadth was cut. Viewing lives in waterfall-tools.
+- **In scope:** the schema, the binary codec, the streaming encoder that aggregates your events, and the
+  golden corpus that keeps it honest.
+
+## Development
+
+```bash
+npm install
+npm run build      # tsc -b → dist/
+npm test           # typecheck + vitest (round-trips the golden corpus, incl. degraded captures)
+npm run lint       # eslint (warnings = errors)
+```
+
+Layout: [`src/`](src) is the library, [`test/`](test) the golden-corpus round-trip suite, [`samples/`](samples)
+the real Chrome captures the schema is grounded in, [`examples/`](examples) the demos, [`docs/`](docs)
+the API + format specs + architecture. Contributor guidance is in [AGENTS.md](AGENTS.md).
 
 ## License
 
-[Apache-2.0](LICENSE). The rule is **product vs. tooling**: **product code** (anything shipped into a user's page) uses only permissive dependencies, while dev/build/test **tooling** that never ships may use weak-copyleft licenses that can't leak into the product — see [AGENTS.md](AGENTS.md).
+[Apache-2.0](LICENSE). Product code (anything that can reach a user's page) uses only permissive
+dependencies; dev/build tooling that never ships may use weak-copyleft licenses that can't leak — see
+[AGENTS.md](AGENTS.md).
