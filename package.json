@@ -1,6 +1,6 @@
 {
   "name": "rumcap",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "description": "The compact, self-describing .rcap web-performance capture format: resource/navigation/user timing, long tasks, LoAF, JS self-profiling and custom spans on one timeline — a streaming encoder and a separate, tree-shakeable decoder.",
   "keywords": [
