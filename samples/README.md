@@ -1,14 +1,14 @@
-# format — capture samples
+# rumcap — capture samples
 
-Real `Performance` API captures from production web pages, used to **ground the `format` schema in actual browser output** instead of memory (project guardrail: *"verify the platform; don't trust memory; ground in real captures"*). These are the seed of the golden corpus.
+Real `Performance` API captures from production web pages, used to **ground the `rumcap` schema in actual browser output** instead of memory (project guardrail: *"verify the platform; don't trust memory; ground in real captures"*). These are the seed of the golden corpus.
 
-> ⚠️ These are **raw browser shapes** — each entry's `toJSON()` plus the live-DOM attribution `toJSON()` drops — **not** the canonical golden corpus. The golden corpus (Capture-shaped fixtures the codec round-trips, incl. degraded variants) now lives in [`../test/fixtures.ts`](../test/fixtures.ts), grounded in these samples; the round-trip test is [`../test/codec.test.ts`](../test/codec.test.ts).
+> ⚠️ The `*.json` files are **raw browser shapes** — each entry's `toJSON()` plus the live-DOM attribution `toJSON()` drops — **not** the canonical golden corpus. The golden corpus (Capture-shaped fixtures the codec round-trips, incl. degraded variants) now lives in [`../test/fixtures.ts`](../test/fixtures.ts), grounded in these samples; the round-trip test is [`../test/codec.test.ts`](../test/codec.test.ts). Each `*.json` file also has a generated same-basename `*.rcap` pair under `rcap/`: the same raw sample replayed through `entrySink` and packed with the current codec, for external decoder reference tests.
 
 ## Layout
 
 ```
 samples/
-  json/                        ten real captures: eight public-page (site × speed) + two local-fixture
+  json/                        ten raw real captures: eight public-page (site × speed) + two local-fixture
     chrome-www-cnn-com.json          normal-speed (unthrottled CPU)
     chrome-www-google-com.json
     chrome-v0-app.json
@@ -19,6 +19,8 @@ samples/
     chrome-www-etsy-com-cpu6x.json
     chrome-local-fixture.json        the local fixture page (surfaces needing page cooperation — below)
     chrome-local-fixture-bfcache.json  its back-navigation variant (populated notRestoredReasons)
+  rcap/                        generated same-basename .rcap decoder reference files
+    chrome-www-cnn-com.rcap          normalized + packed version of chrome-www-cnn-com.json
   capture-tool/                how they were produced (to regenerate / extend)
     drive.mjs                  headless Chrome driver (puppeteer-core); CPU_THROTTLE=N for the -cpuNx variant
     drive-local.mjs            local-fixture driver: serves ./fixture on 127.0.0.1 and captures it
@@ -26,8 +28,9 @@ samples/
     spike.mjs                  the in-page capture spike both drivers inject (document-start)
     capture-spike.js           zero-dep console version (any browser: Safari/Firefox/Chrome)
     inspect.mjs                prints the per-stream field inventory + profile summary
-    sizes.mjs                  rebuilds each capture via the library's entrySink and prints the
-                               raw / gzipped / .rcap size table (the README's numbers)
+    sizes.mjs                  rebuilds each capture via the library's entrySink, prints the
+                               raw / gzipped / .rcap size table (the README's numbers), and can
+                               regenerate the rcap/*.rcap reference files
     package.json
 ```
 
@@ -65,13 +68,22 @@ A clean (non-`Headless`) UA plus `--disable-blink-features=AutomationControlled`
 | `chrome-v0-app.json` | v0 by Vercel | Next.js / React; clean LCP element attribution + LoAF scripts |
 | `chrome-www-etsy-com.json` | Etsy curated staff-picks | Marketplace, image-heavy, highest interaction count |
 
-## What each file contains
+## What each raw JSON file contains
 
 - `clock` — `timeOrigin` (epoch ms), `now`, and timestamp unit/base (`ms`, `timeOrigin`).
 - `environment` — UA, UA-CH (`userAgentData`), `deviceMemory`, `hardwareConcurrency`, `connection`, viewport/screen geometry, self-profiler availability.
 - `supportedEntryTypes` — `PerformanceObserver.supportedEntryTypes` for this browser.
 - `streams` — keyed by entry type; each `{ status, entries[], dropped?, loss? }`. Entries are the raw `toJSON()`; everything only readable live is added under `__attribution`: node-valued attribution as a structural selector **plus structured attrs** (`{tag, id, classes≤8, name}` — spike v3) for the LCP element / CLS `sources` / INP+`event` target / element-timing element, LoAF `scripts`, `serverTiming`, longtask `attribution`, `notRestoredReasons`, the element-timing `intersectionRect`, and mark/measure `detail`. High-volume streams (`resource`, `event`, …) are **capped** with a `dropped` count + `loss` note — itself a prototype of the manifest's truncation semantics.
 - `profile` — the JS Self-Profiling trace from `Profiler.stop()`: interned `resources[]` / `frames[]` (`{name, resourceId?, line?, column?}`) / `stacks[]` (`{frameId, parentId?}`) / `samples[]` (`{timestamp, stackId?}` — `stackId` absent = idle), plus capture metadata: `requestedSampleIntervalMs` vs `actualSampleIntervalMs` (records the clamp), `maxBufferSize`, `sampleBufferFull`, and `counts`. `status` is `present`, else a reason (`unsupported` / `no-constructor` / `construct-threw` / `stop-threw`). **Not** capped — it's the dense dataset; see the size caveat below.
+
+## What each `.rcap` file contains
+
+Each `rcap/*.rcap` file is the normalized `Capture` model produced from the same-basename raw JSON sample
+by [`sizes.mjs`](capture-tool/sizes.mjs): raw entries replay through `entrySink`, live-only attribution
+is grafted back the same way as [`../test/browser.test.ts`](../test/browser.test.ts), and the raw
+profiler trace is folded into profile slices before packing. These files are committed decoder
+fixtures; the browser replay test verifies every `*.rcap` byte-for-byte against a fresh pack of its
+paired JSON sample.
 
 `capture-tool/inspect.mjs` prints the union of keys per stream across all four files (the field inventory the schema is built from).
 
@@ -111,6 +123,7 @@ CPU_THROTTLE=6 xvfb-run -a --server-args="-screen 0 1366x768x24" node drive.mjs 
 xvfb-run -a --server-args="-screen 0 1366x768x24" node drive-local.mjs            # the local-fixture pair
 node inspect.mjs                    # print the field inventory + profile summary
 node sizes.mjs                      # rebuild each capture via entrySink → the README's size table
+node sizes.mjs --write-rcap         # also regenerate ../rcap/*.rcap reference files
                                     # (requires `npm run build` at the repo root first)
 ```
 

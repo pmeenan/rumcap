@@ -154,8 +154,8 @@ npm run lint       # eslint (warnings = errors)
 ```
 
 Layout: [`src/`](src) is the library, [`test/`](test) the golden-corpus round-trip suite, [`samples/`](samples)
-the real Chrome captures the schema is grounded in, [`examples/`](examples) the demos, [`docs/`](docs)
-the API + format specs + architecture. Contributor guidance is in [AGENTS.md](AGENTS.md).
+the real Chrome captures plus paired `.rcap` decoder fixtures, [`examples/`](examples) the demos,
+[`docs/`](docs) the API + format specs + architecture. Contributor guidance is in [AGENTS.md](AGENTS.md).
 
 ## License
 

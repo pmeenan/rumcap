@@ -48,7 +48,9 @@ interface RawSample {
 }
 
 const samplesDir = new URL('../samples/json/', import.meta.url);
-const sampleFiles = readdirSync(samplesDir).filter((f) => f.endsWith('.json'));
+const sampleRcapDir = new URL('../samples/rcap/', import.meta.url);
+const sampleFiles = readdirSync(samplesDir).filter((f) => f.endsWith('.json')).sort();
+const sampleRcapFiles = readdirSync(sampleRcapDir).filter((f) => f.endsWith('.rcap')).sort();
 
 /**
  * Reconstruct the LIVE view of a raw sample entry. The spike stores each entry's `toJSON()` plus, under
@@ -126,15 +128,18 @@ function replay(sample: RawSample): { enc: Encoder; fed: Set<string> } {
 describe('sample-corpus replay through entrySink', () => {
   it('found the raw sample corpus', () => {
     expect(sampleFiles.length).toBeGreaterThanOrEqual(8);
+    expect(sampleRcapFiles).toEqual(sampleFiles.map((f) => f.replace(/\.json$/, '.rcap')));
   });
 
   for (const file of sampleFiles) {
-    it(`packs ${file} consistently and re-pack-stably`, async () => {
+    it(`packs ${file} consistently and matches its reference .rcap`, async () => {
       const sample = JSON.parse(readFileSync(new URL(file, samplesDir), 'utf8')) as RawSample;
       const { enc, fed } = replay(sample);
 
       const bytes = await enc.finish();
       const decoded = await unpack(bytes);
+      const referenceBytes = readFileSync(new URL(file.replace(/\.json$/, '.rcap'), sampleRcapDir));
+      expect(Buffer.from(bytes)).toEqual(referenceBytes);
 
       // Manifest and payloads must agree end-to-end through the sink.
       expect(checkConsistency(decoded)).toEqual([]);

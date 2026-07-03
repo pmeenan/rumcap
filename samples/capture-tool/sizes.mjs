@@ -10,15 +10,20 @@
 //             so this delta is purely the codec (interning, varints, µs fixed-point, columnar slices)
 //   .rcap     pack()'s output (gzip included)
 //
-// Run after `npm run build` at the repo root:  node sizes.mjs
+// Run after `npm run build` at the repo root:
+//   node sizes.mjs
+//   node sizes.mjs --write-rcap   # also writes ../rcap/*.rcap reference samples
 //
 // The mapping logic mirrors test/browser.test.ts (`liveView`); keep the two in step.
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { Encoder, entrySink, asRelMs, asEpochMs } from '../../dist/index.js';
 
 const jsonDir = new URL('../json/', import.meta.url);
+const rcapDir = new URL('../rcap/', import.meta.url);
+const writeRcap = process.argv.includes('--write-rcap');
+if (writeRcap) mkdirSync(rcapDir, { recursive: true });
 
 // Reconstruct the live view of a raw entry: the parts an entry-level toJSON drops or empties (LoAF
 // scripts, serverTiming, longtask attribution, notRestoredReasons, the element-timing
@@ -88,6 +93,7 @@ for (const file of readdirSync(jsonDir).filter((f) => f.endsWith('.json')).sort(
   const rcapBytes = await enc.finish(); // the packed .rcap
   const modelJsonGz = gzipSync(JSON.stringify(model));
   const rawGz = gzipSync(rawBytes);
+  if (writeRcap) writeFileSync(new URL(file.replace(/\.json$/, '.rcap'), rcapDir), rcapBytes);
 
   rows.push({
     file: file.replace(/^chrome-|\.json$/g, ''),
